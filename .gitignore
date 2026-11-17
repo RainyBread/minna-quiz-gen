@@ -1,0 +1,32 @@
+# secrets & local configuration
+.env
+.env.*
+!env.template
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.egg-info/
+
+# local assets / copyrighted originals (never distribute)
+教材pdf/
+*.pdf
+dlut-nihongo-quiz/
+data/unidic-cwj-*/
+data/mdicts/
+
+# runtime data
+data/db/
+data/cache/
+data/logs/
+data/exams/*/rejected/
+data/exams/*/b2a-*
+data/rules/_draft/
+data/rules/history/
+data/textbook/*/drafts/
+
+# OS
+.DS_Store
+Thumbs.db
