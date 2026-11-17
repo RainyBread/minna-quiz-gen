@@ -1,5 +1,5 @@
 # Optional dependencies for scanned textbook PDF extraction (lessons 44-50)
-pymupdf>=1.24
-rapidocr_onnxruntime>=1.4
-Pillow>=10.0
-numpy>=1.26
+pymupdf>=1.24,<2
+rapidocr_onnxruntime>=1.4,<2
+Pillow>=10.0,<13
+numpy>=1.26,<3

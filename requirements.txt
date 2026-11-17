@@ -1,5 +1,5 @@
 # JLPTCraft core runtime dependencies
-python-dotenv>=1.0.1
-pydantic>=2.8
-rich>=13.9
-openai>=1.50
+python-dotenv>=1.0.1,<2
+pydantic>=2.8,<3
+rich>=13.9,<15
+openai>=1.50,<3

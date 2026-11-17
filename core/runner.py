@@ -12,6 +12,7 @@ from typing import Any
 
 from config import Settings
 from core.context import AppContext
+from core.contracts import PluginContext, PluginError
 from core.db import (
     exposed_points,
     insert_batch,
@@ -23,6 +24,15 @@ from core.extension import ExtensionPool
 from core.fingerprint import question_content_hash
 from core.intent import QuizPlan
 from core.item_bank import ItemBank
+from core.items import (
+    Item,
+    ItemBuildError,
+    build_item_from_generated_question,
+    item_to_json,
+    project_generated_question,
+    refresh_hashes,
+    validate_item,
+)
 from core.locks import LockTable
 from core.models import (
     BatchMeta,
@@ -34,6 +44,7 @@ from core.models import (
     now_iso,
 )
 from core.pools import TextbookPools
+from core.registry import question_types
 from core.quizgen import (
     QuestionBuildError,
     QuestionSpec,
@@ -44,6 +55,14 @@ from core.quizgen import (
     generate_original,
     generate_variant,
     style_key,
+)
+from core.render import (
+    AnswerMode,
+    inline_view,
+    key_view,
+    render_item,
+    resolve_answer_mode,
+    stem_view,
 )
 from core.similarity import max_overlap
 
@@ -72,6 +91,7 @@ class RunResult:
     md_path: str = ""
     duplicates: list[str] = field(default_factory=list)
     duration_ms: int = 0
+    items: list[Item] = field(default_factory=list)
 
 
 def new_batch_id() -> str:
@@ -105,6 +125,9 @@ class QuizRunner:
         self._stop = threading.Event()
         self._consecutive_failures = 0
         self._exposed_points: set[str] = set()
+        self._seed = 0
+        self._answer_mode = AnswerMode.AUTO
+        self._reveal = False
         self._console = None
         try:
             from rich.console import Console
@@ -123,9 +146,17 @@ class QuizRunner:
         stream: bool = True,
         dry_run: bool = False,
         hide_answers: bool = False,
+        answers: str = "auto",
+        reveal: bool = False,
     ) -> RunResult:
         started = time.time()
         batch_id = new_batch_id()
+        self._seed = plan.seed
+        self._answer_mode = resolve_answer_mode(
+            "hidden" if hide_answers else answers,
+            is_mock=plan.mode == "mock",
+        )
+        self._reveal = reveal
         rng = random.Random(plan.seed)
         used_counts = used_target_counts(self.settings)
         pools = TextbookPools(self.context, used_counts)
@@ -148,6 +179,7 @@ class QuizRunner:
             raise QuestionBuildError("没有可生成的题目：请检查题量/课次/题型/资源。")
 
         questions: dict[int, GeneratedQuestion] = {}
+        items: dict[int, Item] = {}
         failures: list[RunFailure] = []
         self._consecutive_failures = 0
         self._stop.clear()
@@ -155,12 +187,13 @@ class QuizRunner:
         instant_specs = [
             spec
             for spec in specs
-            if spec.source_kind in {"original", "variant"} or spec.qtype.is_local
+            if self._is_instant_spec(spec)
         ]
+        instant_seqs = {spec.seq for spec in instant_specs}
         llm_specs = [
             spec
             for spec in specs
-            if not spec.qtype.is_local and spec.source_kind == "new"
+            if spec.seq not in instant_seqs and spec.source_kind == "new"
         ]
 
         executor = ThreadPoolExecutor(max_workers=self.workers)
@@ -172,15 +205,16 @@ class QuizRunner:
             # Original/variant/local questions are instant; print them while LLM runs.
             for spec in instant_specs:
                 try:
-                    question = self._generate_instant(
+                    question, item = self._generate_instant(
                         spec, pools, rng, batch_id, exposed
                     )
                     if self._is_duplicate(question):
                         warnings.append(f"{question.question_id}: 与已有题库重复，已跳过。")
                         continue
                     questions[spec.seq] = question
+                    items[spec.seq] = item
                     if stream:
-                        self._print_question(question, spec, len(specs), hide_answers)
+                        self._print_question(item, spec, len(specs))
                 except _NeedsLLM:
                     spec.source_kind = "new"
                     futures[
@@ -194,14 +228,15 @@ class QuizRunner:
             for future in as_completed(futures):
                 spec = futures[future]
                 try:
-                    question = future.result()
+                    question, item = future.result()
                     if self._is_duplicate(question):
                         warnings.append(f"{question.question_id}: 与已有题库重复，已跳过。")
                         continue
                     questions[spec.seq] = question
+                    items[spec.seq] = item
                     self._consecutive_failures = 0
                     if stream:
-                        self._print_question(question, spec, len(specs), hide_answers)
+                        self._print_question(item, spec, len(specs))
                 except FatalLLMError as exc:
                     failures.append(RunFailure(spec.seq, spec.qtype.value, str(exc)))
                     self._stop.set()
@@ -209,19 +244,27 @@ class QuizRunner:
                     failures.append(
                         RunFailure(spec.seq, spec.qtype.value, f"{type(exc).__name__}: {exc}")
                     )
-                    self._consecutive_failures += 1
-                    if self._consecutive_failures >= 3:
-                        self._stop.set()
+                    if _is_transient_llm_error(str(exc)):
+                        self._consecutive_failures += 1
+                        if self._consecutive_failures >= 3:
+                            self._stop.set()
+                    else:
+                        # Structural misses are per-question, not a reason to
+                        # cancel the rest of the batch.
+                        self._consecutive_failures = 0
         finally:
             executor.shutdown(wait=True, cancel_futures=True)
 
         ordered = [questions[key] for key in sorted(questions)]
+        ordered_items = [items[key] for key in sorted(items)]
         if not ordered:
             raise QuestionBuildError(
                 "所有题目都生成失败。"
                 + (" 首个错误：" + failures[0].message if failures else "")
             )
-        batch = self._build_batch(plan, batch_id, ordered, warnings, started)
+        batch = self._build_batch(
+            plan, batch_id, ordered, ordered_items, warnings, started
+        )
         json_path = md_path = ""
         duplicates: list[str] = []
         if not dry_run:
@@ -247,6 +290,39 @@ class QuizRunner:
             md_path=md_path,
             duplicates=duplicates,
             duration_ms=duration,
+            items=ordered_items,
+        )
+
+    def _is_instant_spec(self, spec: QuestionSpec) -> bool:
+        if spec.source_kind in {"original", "variant"} or spec.qtype.is_local:
+            return True
+        plugin = question_types.maybe_get(spec.type_name)
+        return bool(
+            spec.is_plugin_type
+            and plugin is not None
+            and getattr(plugin, "is_local", False)
+        )
+
+    def _plugin_context(
+        self,
+        pools: TextbookPools,
+        rng: random.Random,
+        batch_id: str,
+        exposed: set[str],
+    ) -> PluginContext:
+        return PluginContext(
+            settings=self.settings,
+            context=self.context,
+            pools=pools,
+            rng=rng,
+            llm=self.llm,
+            locks=self.locks,
+            mdict=self.mdict,
+            extension_pool=self.extension_pool,
+            item_bank=self.item_bank,
+            batch_id=batch_id,
+            seed=self._seed,
+            exposed_points=set(exposed),
         )
 
     def _generate_instant(
@@ -256,34 +332,53 @@ class QuizRunner:
         rng: random.Random,
         batch_id: str,
         exposed: set[str],
-    ) -> GeneratedQuestion:
+    ) -> tuple[GeneratedQuestion, Item]:
+        plugin = question_types.maybe_get(spec.type_name)
+        if spec.is_plugin_type and plugin is not None:
+            if not getattr(plugin, "is_local", False):
+                raise _NeedsLLM("plugin type requires LLM")
+            item = plugin.build_local(
+                spec, self._plugin_context(pools, rng, batch_id, exposed)
+            )
+            if item is None:
+                raise QuestionBuildError(f"插件题型 {spec.type_name} 未产出 Item")
+            return self._finalize_item(item, spec)
         item = spec.original_item
         if spec.source_kind == "original" and item is not None:
             try:
-                return generate_original(spec, item, batch_id=batch_id)
+                return self._finalize(
+                    generate_original(spec, item, batch_id=batch_id), spec
+                )
             except Exception:
                 spec.source_kind = "variant"
         if spec.source_kind == "variant" and item is not None:
             try:
-                return generate_variant(
+                return self._finalize(
+                    generate_variant(
+                        spec,
+                        item,
+                        pools,
+                        rng,
+                        batch_id=batch_id,
+                        point_exposed=spec.point_key in exposed,
+                    ),
                     spec,
-                    item,
-                    pools,
-                    rng,
-                    batch_id=batch_id,
-                    point_exposed=spec.point_key in exposed,
                 )
             except Exception:
                 if spec.point_key not in exposed:
                     spec.source_kind = "original"
                     try:
-                        return generate_original(spec, item, batch_id=batch_id)
+                        return self._finalize(
+                            generate_original(spec, item, batch_id=batch_id), spec
+                        )
                     except Exception:
                         pass
                 spec.source_kind = "new"
         if spec.qtype.is_local:
             spec.source_kind = "new"
-            return generate_local(spec, pools, rng, batch_id=batch_id)
+            return self._finalize(
+                generate_local(spec, pools, rng, batch_id=batch_id), spec
+            )
         raise _NeedsLLM("需要 LLM 生成新题")
 
     # ------------------------------------------------------------------
@@ -295,27 +390,33 @@ class QuizRunner:
         pools: TextbookPools,
         rng: random.Random,
         batch_id: str,
-    ) -> GeneratedQuestion:
+    ) -> tuple[GeneratedQuestion, Item]:
         if self._stop.is_set():
             raise QuestionBuildError("已熔断，取消后续 LLM 请求")
         if self.llm is None:
             raise FatalLLMError("未配置 LLM")
+        spec.expected_text = spec.expected_text or spec.correct_text
+        spec.correct_text = spec.expected_text
+        spec.pending_defects = []
         spec.source_kind = "new"
         last_error: Exception | None = None
         for attempt in range(2):
             if self._stop.is_set():
                 raise QuestionBuildError("已熔断，取消后续 LLM 请求")
             try:
-                return generate_llm(
+                return self._finalize(
+                    generate_llm(
+                        spec,
+                        self.llm,
+                        self.settings,
+                        pools,
+                        rng,
+                        extension_pool=self.extension_pool,
+                        mdict=self.mdict,
+                        locks=self.locks,
+                        batch_id=batch_id,
+                    ),
                     spec,
-                    self.llm,
-                    self.settings,
-                    pools,
-                    rng,
-                    extension_pool=self.extension_pool,
-                    mdict=self.mdict,
-                    locks=self.locks,
-                    batch_id=batch_id,
                 )
             except Exception as exc:
                 last_error = exc
@@ -330,28 +431,62 @@ class QuizRunner:
             if spec.point_key not in self._exposed_points:
                 try:
                     spec.source_kind = "original"
-                    return generate_original(spec, item, batch_id=batch_id)
+                    return self._finalize(
+                        generate_original(spec, item, batch_id=batch_id), spec
+                    )
                 except Exception:
                     pass
             try:
                 spec.source_kind = "variant"
-                return generate_variant(
+                return self._finalize(
+                    generate_variant(
+                        spec,
+                        item,
+                        pools,
+                        rng,
+                        batch_id=batch_id,
+                        point_exposed=spec.point_key in self._exposed_points,
+                    ),
                     spec,
-                    item,
-                    pools,
-                    rng,
-                    batch_id=batch_id,
-                    point_exposed=spec.point_key in self._exposed_points,
                 )
             except Exception:
                 pass
         if spec.qtype in {QuestionType.GRAMMAR_FILL, QuestionType.EXPRESSION_CHOICE}:
             try:
                 spec.source_kind = "variant"
-                return generate_local_grammar(spec, pools, rng, locks=self.locks, batch_id=batch_id)
+                return self._finalize(
+                    generate_local_grammar(
+                        spec, pools, rng, locks=self.locks, batch_id=batch_id
+                    ),
+                    spec,
+                )
             except Exception:
                 pass
         raise QuestionBuildError(str(last_error or "unknown error"))
+
+    def _finalize_item(
+        self, item: Item, spec: QuestionSpec
+    ) -> tuple[GeneratedQuestion, Item]:
+        defects = validate_item(item)
+        if defects:
+            raise ItemBuildError(defects[0].code, defects[0].message)
+        projected = project_generated_question(
+            item, batch_id=str(item.meta.provenance.get("batch_id") or "")
+        )
+        # Keep the sampled lesson when the Item has no textbook lesson.
+        if not item.meta.lessons and spec.textbook_lesson:
+            item.meta.lessons = [spec.textbook_lesson]
+            refresh_hashes(item)
+            projected.textbook_lesson = spec.textbook_lesson
+            projected.lesson = spec.course_lesson
+        return projected, item
+
+    def _finalize(
+        self, question: GeneratedQuestion, spec: QuestionSpec
+    ) -> tuple[GeneratedQuestion, Item]:
+        """Build and validate the canonical Item, then derive the legacy view."""
+        item = build_item_from_generated_question(question, seed=self._seed)
+        return self._finalize_item(item, spec)
 
     def _is_duplicate(self, question: GeneratedQuestion) -> bool:
         if question.source_kind in {"original", "variant"}:
@@ -366,12 +501,19 @@ class QuizRunner:
         plan: QuizPlan,
         batch_id: str,
         questions: list[GeneratedQuestion],
+        items: list[Item],
         warnings: list[str],
         started: float,
     ) -> GeneratedBatch:
         actual_plan: dict[str, int] = {}
-        for question in questions:
-            actual_plan[question.type.value] = actual_plan.get(question.type.value, 0) + 1
+        if items:
+            for item in items:
+                actual_plan[item.type] = actual_plan.get(item.type, 0) + 1
+        else:
+            for question in questions:
+                actual_plan[question.type.value] = (
+                    actual_plan.get(question.type.value, 0) + 1
+                )
         model = (
             f"local+{self.settings.llm_model}"
             if any(not q.type.is_local for q in questions)
@@ -394,13 +536,37 @@ class QuizRunner:
             duration_ms=int((time.time() - started) * 1000),
             expected=plan.total,
             accepted=len(questions),
-            metrics=self._metrics(questions, plan),
+            seed=plan.seed,
+            schema_version="1",
+            answers_mode=self._answer_mode.value,
+            metrics=self._metrics(questions, plan, items),
         )
-        return GeneratedBatch(batch_meta=meta, questions=questions)
+        return GeneratedBatch(
+            batch_meta=meta,
+            questions=questions,
+            items=[item_to_json(item) for item in items],
+        )
 
-    def _metrics(self, questions: list[GeneratedQuestion], plan: QuizPlan) -> dict[str, Any]:
+    def _metrics(
+        self,
+        questions: list[GeneratedQuestion],
+        plan: QuizPlan,
+        items: list[Item] | None = None,
+    ) -> dict[str, Any]:
+        items = items or []
         source_counts: dict[str, int] = {}
+        domain_counts: dict[str, int] = {}
         answer_distribution: dict[str, int] = {}
+        for index, item in enumerate(items, start=1):
+            source_counts[item.meta.source] = source_counts.get(item.meta.source, 0) + 1
+            domain_counts[item.meta.domain] = domain_counts.get(item.meta.domain, 0) + 1
+            try:
+                rendered = render_item(item, seed=self._seed, number=index)
+                answer_distribution[rendered.answer_key] = (
+                    answer_distribution.get(rendered.answer_key, 0) + 1
+                )
+            except Exception:
+                pass
         overlap_values: list[float] = []
         allowed = self._allowed_options()
         out_of_level = 0
@@ -408,10 +574,6 @@ class QuizRunner:
         bare_framework = 0
         same_field_no_clue = 0
         for question in questions:
-            source_counts[question.source_kind] = source_counts.get(question.source_kind, 0) + 1
-            answer_distribution[question.answer_key] = (
-                answer_distribution.get(question.answer_key, 0) + 1
-            )
             references = list(question.provenance.get("reference_stems") or [])
             anchor = question.provenance.get("anchor_example")
             if anchor:
@@ -436,10 +598,16 @@ class QuizRunner:
                     key = normalize_text(option.text)
                     if key not in allowed and style_key(option.text) != "particle":
                         out_of_level += 1
-        point_keys = {question.point_key for question in questions if question.point_key}
+        point_keys = {
+            item.meta.point for item in items if item.meta.point
+        } or {question.point_key for question in questions if question.point_key}
         metrics = {
             "source_counts": source_counts,
-            "source_mix_target": dict(plan.source_mix),
+            "domain_counts": domain_counts,
+            "source_mix_target": {
+                ("ai" if key == "new" else key): value
+                for key, value in plan.source_mix.items()
+            },
             "point_coverage": round(len(point_keys) / max(1, len(questions)), 3),
             "stem_overlap_max": round(max(overlap_values), 3) if overlap_values else 0.0,
             "stem_overlap_avg": round(
@@ -487,30 +655,23 @@ class QuizRunner:
 
     def _print_question(
         self,
-        question: GeneratedQuestion,
+        item: Item,
         spec: QuestionSpec,
         total: int,
-        hide_answers: bool,
     ) -> None:
-        scope = {
-            "in_syllabus": "课内",
-            "mdict_distractors": "课内+拓展干扰",
-            "extend": "拓展",
-        }.get(question.scope, question.scope)
-        lesson = f"L{question.textbook_lesson}" if question.textbook_lesson else "跨课"
-        lines = [
-            f"[{spec.seq}/{total}] {TYPE_LABELS_ZH.get(question.type.value, question.type.value)} · {lesson} · {scope}"
-        ]
-        if question.topic:
-            lines[0] += f" · 主题：{question.topic}"
-        lines.append(question.stem.replace("[[blank]]", "（　　）"))
-        lines.extend(f"{option.key}. {option.text}" for option in question.options)
-        if not hide_answers:
-            lines.append(f"答案：{question.answer_key}. {question.correct_option_text}")
-            if question.explanation_zh:
-                lines.append(f"解析：{question.explanation_zh}")
-        lines.append("")
-        self._print("\n".join(lines))
+        rendered = render_item(item, seed=self._seed, number=spec.seq)
+        if self._answer_mode == AnswerMode.ONLY:
+            text = key_view(rendered)
+        elif self._answer_mode == AnswerMode.INLINE:
+            text = inline_view(rendered)
+        else:
+            text = stem_view(rendered)
+            if self._reveal and self._answer_mode == AnswerMode.HIDDEN:
+                text = text + "\n" + key_view(rendered)
+        first = f"[{rendered.number}] "
+        if text.startswith(first):
+            text = f"[{spec.seq}/{total}] " + text[len(first) :]
+        self._print(text)
 
 
 def _is_fatal_llm_error(message: str) -> bool:
@@ -518,4 +679,26 @@ def _is_fatal_llm_error(message: str) -> bool:
     return any(
         marker in text
         for marker in ("401", "403", "authentication", "invalid api key", "unauthorized")
+    )
+
+
+def _is_transient_llm_error(message: str) -> bool:
+    text = (message or "").lower()
+    return any(
+        marker in text
+        for marker in (
+            "timeout",
+            "timed out",
+            "connection",
+            "connect",
+            "network",
+            "rate limit",
+            "429",
+            "500",
+            "502",
+            "503",
+            "504",
+            "overloaded",
+            "temporarily",
+        )
     )

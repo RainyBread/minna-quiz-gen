@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from config import Semester
 
@@ -466,6 +466,9 @@ class GeneratedQuestion(StrictModel):
     semantic_audit: dict[str, Any] | None = None
 
 
+_BATCH_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$")
+
+
 class BatchMeta(StrictModel):
     id: str
     semester: Semester = Semester.BIG2_AUTUMN
@@ -483,12 +486,25 @@ class BatchMeta(StrictModel):
     duration_ms: int = 0
     expected: int = 0
     accepted: int = 0
+    seed: int = 0
+    schema_version: str = "1"
+    answers_mode: str = "auto"
     metrics: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("id")
+    @classmethod
+    def _validate_id(cls, value: str) -> str:
+        if not _BATCH_ID_RE.fullmatch(value or ""):
+            raise ValueError(
+                "batch id must be 1-80 characters of A-Z, a-z, 0-9, '-' or '_'"
+            )
+        return value
 
 
 class GeneratedBatch(StrictModel):
     batch_meta: BatchMeta
     questions: list[GeneratedQuestion] = Field(default_factory=list)
+    items: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class AuditResult(LenientModel):

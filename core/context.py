@@ -19,6 +19,7 @@ from core.models import (
     TextbookVocab,
 )
 from core.novelty import NoveltyIndex
+from core.profiles import Profiles, ProfilesError
 
 
 class ContextError(RuntimeError):
@@ -45,6 +46,7 @@ class AppContext:
     rules: MistakeRulesFile = field(default_factory=MistakeRulesFile)
     course: dict[str, Any] = field(default_factory=dict)
     novelty: NoveltyIndex = field(default_factory=NoveltyIndex)
+    profiles: Profiles | None = None
 
 
 def load_context(settings: Settings, *, require_rules: bool = False) -> AppContext:
@@ -75,6 +77,10 @@ def load_context(settings: Settings, *, require_rules: bool = False) -> AppConte
     )
     course = _load_json(settings.course_profile_path) or {}
     novelty = NoveltyIndex.load(settings.novelty_index_path)
+    try:
+        profiles = Profiles.load(settings.profiles_path)
+    except ProfilesError as exc:
+        raise ContextError(str(exc)) from exc
     return AppContext(
         settings=settings,
         vocab=vocab,
@@ -83,4 +89,5 @@ def load_context(settings: Settings, *, require_rules: bool = False) -> AppConte
         rules=rules,
         course=course if isinstance(course, dict) else {},
         novelty=novelty,
+        profiles=profiles,
     )

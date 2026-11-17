@@ -18,6 +18,82 @@ TAG_TEMPLATE = (
     "[ZH]中文翻译[/ZH]"
 )
 
+CARRIER_TAG_TEMPLATE = (
+    "[s]完整句子或短对话，把要考的词或形式用 [t]...[/t] 标出[/s]"
+)
+
+
+def mask_secrets(text: str, secrets: list[str]) -> str:
+    """Remove answer/option strings from a prompt fragment."""
+    value = text or ""
+    for secret in sorted((item for item in secrets if item), key=len, reverse=True):
+        value = value.replace(secret, "（　）")
+    return value
+
+
+def build_carrier_prompt(spec: Any) -> dict[str, str]:
+    """Prompt the model for a carrier sentence only.
+
+    The model never sees the fixed answer form, options or explanation.  It
+    sees the target lemma/pattern and meaning so it can write about the target,
+    and must mark the target span with ``[t]``.
+    """
+    qtype: QuestionType = spec.qtype
+    secrets = [str(getattr(spec, "correct_text", "") or "")]
+    secrets.extend(str(item) for item in getattr(spec, "approved_forms", []) or [])
+    system = (
+        "你是日语语境作者。只输出一个自然的日语完整句子或短对话，"
+        "用 [s]...[/s] 包裹，用 [t]...[/t] 标出要考的词或形式。"
+        "不要输出选项、答案、解析、答案字母、中文翻译或标签说明。"
+    )
+    if qtype == QuestionType.VOCAB_CHOICE:
+        target = (
+            f"目标词：{spec.written}\n"
+            f"中文：{spec.meaning or '（无）'}\n"
+            f"课次：{spec.lesson or '跨课'}\n"
+        )
+        if spec.scope == "extend":
+            target += f"这是拓展学习词，主题：{spec.topic or '自由'}。\n"
+        instruction = (
+            "写一句自然日语，让目标词出现；句子本身必须带出只能支持这个词的语境。"
+            "把目标词用 [t]...[/t] 标出。"
+        )
+    elif qtype == QuestionType.EXPRESSION_CHOICE:
+        target = (
+            f"语法/表达点：{spec.pattern or spec.written}\n"
+            f"意思：{spec.meaning or '（无）'}\n"
+            f"课次：{spec.lesson or '跨课'}\n"
+        )
+        instruction = (
+            "写一段很短的日语对话（2-3 句），让这个表达自然出现；"
+            "把表达本身用 [t]...[/t] 标出。"
+        )
+    else:
+        target = (
+            f"语法点：{spec.pattern or spec.written}\n"
+            f"意思：{spec.meaning or '（无）'}\n"
+            f"课次：{spec.lesson or '跨课'}\n"
+        )
+        instruction = (
+            "写一个自然的日语单句，让这个语法形式自然出现；"
+            "把要考的形式用 [t]...[/t] 标出。"
+        )
+    hint = mask_secrets(getattr(spec, "clue_hint", ""), secrets)
+    anchor = f"本地线索提示：{hint}\n" if hint else ""
+    example_secrets = secrets + [str(getattr(spec, "written", "") or "")]
+    example = mask_secrets(getattr(spec, "example", ""), example_secrets)
+    if example:
+        anchor += f"参考例句（靶词已挖空）：{example}\n"
+    user = (
+        f"题型：{qtype.value}\n"
+        f"{target}"
+        f"{anchor}"
+        f"{instruction}\n"
+        "请按以下格式输出：\n"
+        f"{CARRIER_TAG_TEMPLATE}"
+    )
+    return {"system": system, "user": user}
+
 
 def build_question_prompt(spec: Any) -> dict[str, str]:
     qtype: QuestionType = spec.qtype

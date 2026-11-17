@@ -17,6 +17,8 @@ It never treats ``[[blank]]`` as a tag.
 from __future__ import annotations
 
 import re
+import unicodedata
+from dataclasses import dataclass, field
 from typing import Iterable
 
 _FENCE_RE = re.compile(r"```(?:[a-zA-Z0-9_-]+)?\s*(.*?)```", re.S)
@@ -36,8 +38,9 @@ _ANS_CLOSE_SENTINEL = "JLPTCRAFTANSCLOSE"
 def normalize_brackets(text: str) -> str:
     if not text:
         return ""
+    value = unicodedata.normalize("NFKC", text)
     return (
-        text.replace("［", "[")
+        value.replace("［", "[")
         .replace("］", "]")
         .replace("【", "[")
         .replace("】", "]")
@@ -137,6 +140,176 @@ def parse_option_lines(text: str) -> list[str]:
             if value:
                 options.append(value)
     return options
+
+
+# ---------------------------------------------------------------------------
+# Carrier parsing: [s]...[/s] with nested [t]...[/t]
+# ---------------------------------------------------------------------------
+_OPEN_SENTENCE_RE = re.compile(r"\[\s*(s|sentence|full)\s*\]", re.I)
+_CLOSE_SENTENCE_RE = re.compile(r"\[\s*/\s*(s|sentence|full)\s*\]", re.I)
+_NEXT_TOP_TAG_RE = re.compile(
+    r"\[\s*(zh|clue|exp|explanation|translation)\s*\]", re.I
+)
+_OPEN_T_RE = re.compile(r"\[\s*t\s*\]", re.I)
+_CLOSE_T_RE = re.compile(r"\[\s*/\s*t\s*\]", re.I)
+_OPEN_ANS_RE = re.compile(r"\[\[\s*ans\s*\]\]", re.I)
+_CLOSE_ANS_RE = re.compile(r"\[\[\s*/\s*ans\s*\]\]", re.I)
+_SHORT_MARK_RE = re.compile(r"\[\[\s*([^\[\]/][^\[\]]*?)\s*\]\]", re.S)
+
+
+@dataclass
+class CarrierSlot:
+    start: int
+    end: int
+    span: str
+
+
+@dataclass
+class CarrierParse:
+    carrier: str = ""
+    slots: list[CarrierSlot] = field(default_factory=list)
+    raw: str = ""
+    warnings: list[str] = field(default_factory=list)
+
+
+def _extract_sentence(text: str) -> tuple[str, list[str]]:
+    warnings: list[str] = []
+    match = _OPEN_SENTENCE_RE.search(text)
+    if match is None:
+        return text, warnings
+    start = match.end()
+    close = _CLOSE_SENTENCE_RE.search(text, start)
+    if close is not None:
+        return text[start : close.start()], warnings
+    warnings.append("missing [/s]")
+    stop = _NEXT_TOP_TAG_RE.search(text, start)
+    end = stop.start() if stop is not None else len(text)
+    return text[start:end], warnings
+
+
+def _build_carrier_with_spans(
+    content: str,
+    open_re: re.Pattern[str],
+    close_re: re.Pattern[str],
+    warnings: list[str],
+) -> tuple[str, list[CarrierSlot]]:
+    parts: list[str] = []
+    spans: list[CarrierSlot] = []
+    cursor = 0
+    carrier_len = 0
+    for match in open_re.finditer(content):
+        if match.start() < cursor:
+            continue
+        before = content[cursor : match.start()]
+        parts.append(before)
+        carrier_len += len(before)
+        span_start = match.end()
+        close = close_re.search(content, span_start)
+        if close is None:
+            warnings.append("missing span closer")
+            span_end = len(content)
+            next_open = open_re.search(content, span_start)
+            if next_open is not None:
+                span_end = next_open.start()
+            cursor = span_end
+        else:
+            span_end = close.start()
+            cursor = close.end()
+        raw_span = content[span_start:span_end]
+        left = len(raw_span) - len(raw_span.lstrip())
+        right = len(raw_span) - len(raw_span.rstrip())
+        span = raw_span.strip()
+        if not span:
+            warnings.append("empty span")
+            continue
+        start = carrier_len + left
+        end = carrier_len + len(raw_span) - right
+        parts.append(span)
+        spans.append(CarrierSlot(start=start, end=end, span=span))
+        carrier_len = end
+    parts.append(content[cursor:])
+    carrier = "".join(parts)
+    left_trim = len(carrier) - len(carrier.lstrip())
+    carrier = carrier.strip()
+    if left_trim:
+        for slot in spans:
+            slot.start = max(0, slot.start - left_trim)
+            slot.end = max(slot.start, slot.end - left_trim)
+    return carrier, spans
+
+
+def _build_carrier_with_short_markers(
+    content: str,
+    warnings: list[str],
+) -> tuple[str, list[CarrierSlot]]:
+    parts: list[str] = []
+    spans: list[CarrierSlot] = []
+    cursor = 0
+    carrier_len = 0
+    for match in _SHORT_MARK_RE.finditer(content):
+        if match.start() < cursor:
+            continue
+        before = content[cursor : match.start()]
+        parts.append(before)
+        carrier_len += len(before)
+        raw_span = match.group(1)
+        span = raw_span.strip()
+        if span.lower() not in {"blank", "ans", "/ans"} and span:
+            start = carrier_len + (len(raw_span) - len(raw_span.lstrip()))
+            parts.append(span)
+            spans.append(CarrierSlot(start=start, end=start + len(span), span=span))
+            carrier_len = start + len(span)
+        else:
+            warnings.append("ignored non-target shorthand marker")
+        cursor = match.end()
+    parts.append(content[cursor:])
+    carrier = "".join(parts)
+    left_trim = len(carrier) - len(carrier.lstrip())
+    carrier = carrier.strip()
+    if left_trim:
+        for slot in spans:
+            slot.start = max(0, slot.start - left_trim)
+            slot.end = max(slot.start, slot.end - left_trim)
+    return carrier, spans
+
+
+def parse_carrier_tags(text: str) -> CarrierParse:
+    """Parse ``[s]...[/s]`` with nested ``[t]...[/t]`` spans.
+
+    Also accepts legacy ``[SENTENCE]...[[ans]]...[[/ans]]`` and
+    ``[[word]]`` shorthand.  Returns the carrier without tags and offsets into
+    that carrier.  Missing tags are reported in ``warnings`` so the caller can
+    decide between local salvage and quarantine.
+    """
+    result = CarrierParse(raw=text or "")
+    if not text:
+        result.warnings.append("empty response")
+        return result
+    normalized = _strip_fences(normalize_brackets(text))
+    content, sentence_warnings = _extract_sentence(normalized)
+    result.warnings.extend(sentence_warnings)
+    content = content.strip()
+    if not content:
+        result.warnings.append("empty sentence")
+        return result
+
+    carrier, slots = _build_carrier_with_spans(
+        content, _OPEN_T_RE, _CLOSE_T_RE, result.warnings
+    )
+    if not slots:
+        carrier, slots = _build_carrier_with_spans(
+            content, _OPEN_ANS_RE, _CLOSE_ANS_RE, result.warnings
+        )
+    if not slots:
+        carrier, slots = _build_carrier_with_short_markers(
+            content, result.warnings
+        )
+
+    result.carrier = carrier
+    result.slots = slots
+    if not slots:
+        result.warnings.append("no [t] span")
+    return result
 
 
 def parse_question_tags(text: str) -> dict[str, object]:

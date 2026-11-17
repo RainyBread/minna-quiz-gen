@@ -32,6 +32,30 @@ class VisionUnavailable(LLMError):
 
 
 _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.S | re.I)
+_BEARER_RE = re.compile(r"(?i)\b(Bearer\s+)[A-Za-z0-9._~+/=-]{8,}")
+_SECRET_KV_RE = re.compile(
+    r"(?i)\b(api[_-]?key|access[_-]?token|client[_-]?secret|password)"
+    r"(\s*[:=]\s*)([^\s,;\"']{4,})"
+)
+_BARE_TOKEN_RES = (
+    re.compile(r"\bsk-[A-Za-z0-9_-]{12,}"),
+    re.compile(r"\b(?:ghp_|gho_|ghu_|ghs_|ghr_|github_pat_)[A-Za-z0-9_]{20,}"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{10,}"),
+)
+
+
+def sanitize_secret_text(message: Any, *secrets: str) -> str:
+    """Remove credentials from provider errors before logging/displaying."""
+    text = str(message)
+    for secret in secrets:
+        if secret:
+            text = text.replace(secret, mask_secret(secret))
+    text = _BEARER_RE.sub(r"\1***", text)
+    text = _SECRET_KV_RE.sub(lambda match: f"{match.group(1)}{match.group(2)}***", text)
+    for pattern in _BARE_TOKEN_RES:
+        text = pattern.sub(lambda match: mask_secret(match.group(0)), text)
+    return text
 
 
 def parse_json_loose(text: str) -> Any:
@@ -73,8 +97,10 @@ class LLMClient:
     def __init__(self, settings: Settings, offline: bool = False):
         self.settings = settings
         self.offline = offline
-        self._client: Any = None
-        self._client_lock = threading.Lock()
+        self._text_client: Any = None
+        self._vision_openai: Any = None
+        self._text_client_lock = threading.Lock()
+        self._vision_client_lock = threading.Lock()
 
     @property
     def available(self) -> bool:
@@ -90,22 +116,22 @@ class LLMClient:
 
     def _openai_client(self) -> Any:
         self._ensure_available()
-        if self._client is not None:
-            return self._client
-        with self._client_lock:
-            if self._client is not None:
-                return self._client
+        if self._text_client is not None:
+            return self._text_client
+        with self._text_client_lock:
+            if self._text_client is not None:
+                return self._text_client
             try:
                 from openai import OpenAI
             except Exception as exc:  # pragma: no cover
                 raise LLMUnavailable("未安装 openai SDK；pip install -r requirements.txt") from exc
-            self._client = OpenAI(
+            self._text_client = OpenAI(
                 api_key=self.settings.llm_api_key,
                 base_url=self.settings.llm_base_url or None,
                 timeout=self.settings.llm_timeout,
                 max_retries=0,
             )
-            return self._client
+            return self._text_client
 
     def complete_json(
         self,
@@ -159,11 +185,11 @@ class LLMClient:
                 last_error = exc
             if attempt + 1 < attempts:
                 time.sleep(0.6 * (attempt + 1) + random.random() * 0.4)
-        message = str(last_error or "unknown error")
-        if self.settings.llm_api_key:
-            message = message.replace(
-                self.settings.llm_api_key, mask_secret(self.settings.llm_api_key)
-            )
+        message = sanitize_secret_text(
+            last_error or "unknown error",
+            self.settings.llm_api_key,
+            self.settings.vision_api_key,
+        )
         raise LLMError(f"LLM 文本调用失败：{message}") from last_error
 
     def _complete_openai_text(
@@ -239,9 +265,11 @@ class LLMClient:
                     time.sleep(1.0)
                     continue
                 break
-        message = str(last_error)
-        if self.settings.llm_api_key:
-            message = message.replace(self.settings.llm_api_key, mask_secret(self.settings.llm_api_key))
+        message = sanitize_secret_text(
+            last_error,
+            self.settings.llm_api_key,
+            self.settings.vision_api_key,
+        )
         raise LLMError(f"LLM 调用失败：{message}") from last_error
 
     def _complete_anthropic(
@@ -273,7 +301,10 @@ class LLMClient:
         except LLMJSONError:
             raise
         except Exception as exc:
-            raise LLMError(f"Anthropic 调用失败：{exc}") from exc
+            message = sanitize_secret_text(
+                exc, self.settings.llm_api_key, self.settings.vision_api_key
+            )
+            raise LLMError(f"Anthropic 调用失败：{message}") from exc
 
     # ------------------------------------------------------------------
     # Vision (used only for scanned textbook OCR)
@@ -302,18 +333,22 @@ class LLMClient:
         raise VisionUnavailable(f"未知 VISION_PROVIDER={provider}")
 
     def _vision_client(self) -> Any:
-        if self._client is not None:
-            return self._client
-        try:
-            from openai import OpenAI
-        except Exception as exc:  # pragma: no cover
-            raise VisionUnavailable("未安装 openai SDK") from exc
-        self._client = OpenAI(
-            api_key=self.settings.vision_api_key,
-            base_url=self.settings.vision_base_url or None,
-            timeout=self.settings.llm_timeout,
-        )
-        return self._client
+        if self._vision_openai is not None:
+            return self._vision_openai
+        with self._vision_client_lock:
+            if self._vision_openai is not None:
+                return self._vision_openai
+            try:
+                from openai import OpenAI
+            except Exception as exc:  # pragma: no cover
+                raise VisionUnavailable("未安装 openai SDK") from exc
+            self._vision_openai = OpenAI(
+                api_key=self.settings.vision_api_key,
+                base_url=self.settings.vision_base_url or None,
+                timeout=self.settings.llm_timeout,
+                max_retries=0,
+            )
+            return self._vision_openai
 
     def _complete_openai_vision(
         self,
@@ -364,7 +399,10 @@ class LLMClient:
                     kwargs.pop("response_format", None)
                     continue
                 break
-        raise LLMError(f"视觉 LLM 调用失败：{last_error}") from last_error
+        message = sanitize_secret_text(
+            last_error, self.settings.llm_api_key, self.settings.vision_api_key
+        )
+        raise LLMError(f"视觉 LLM 调用失败：{message}") from last_error
 
     def _complete_anthropic_vision(
         self,
@@ -413,4 +451,26 @@ class LLMClient:
         except LLMJSONError:
             raise
         except Exception as exc:
-            raise LLMError(f"视觉 LLM 调用失败：{exc}") from exc
+            message = sanitize_secret_text(
+                exc, self.settings.llm_api_key, self.settings.vision_api_key
+            )
+            raise LLMError(f"视觉 LLM 调用失败：{message}") from exc
+
+
+def create_llm(settings: Settings, offline: bool = False) -> Any:
+    """Create the configured provider through the plugin registry.
+
+    Falls back to the built-in :class:`LLMClient` if plugins are unavailable;
+    switching between openai-compatible and anthropic remains configuration-only.
+    """
+    try:
+        from core.registry import llm_providers
+
+        provider = llm_providers.maybe_get(
+            str(getattr(settings, "llm_provider", "openai") or "openai")
+        )
+    except Exception:
+        provider = None
+    if provider is not None:
+        return provider(settings, offline=offline)
+    return LLMClient(settings, offline=offline)

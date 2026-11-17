@@ -1,0 +1,2 @@
+# Optional: only needed when LLM_PROVIDER=anthropic (or claude).
+anthropic>=0.40,<2

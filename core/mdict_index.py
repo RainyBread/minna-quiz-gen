@@ -159,7 +159,7 @@ class MDictIndex:
             )
         except Exception as exc:
             self.last_error = f"{type(exc).__name__}: {exc}"
-            if __import__("os").getenv("JLPTCRAFT_DEBUG_MDICT"):
+            if os.getenv("JLPTCRAFT_DEBUG_MDICT"):
                 print(f"[mdict debug] {path.name} key={key!r}: {self.last_error}")
             self._cache[cache_key] = None
             return None
@@ -383,8 +383,33 @@ class MDictIndex:
 # ---------------------------------------------------------------------------
 # Text helpers
 # ---------------------------------------------------------------------------
+_SUBPROCESS_ENV_KEYS = (
+    "PATH",
+    "PATHEXT",
+    "SYSTEMROOT",
+    "WINDIR",
+    "COMSPEC",
+    "TEMP",
+    "TMP",
+    "HOME",
+    "USERPROFILE",
+    "APPDATA",
+    "LOCALAPPDATA",
+    "PYTHONUSERBASE",
+    "LANG",
+    "LC_ALL",
+    "PYTHONUTF8",
+    "PYTHONIOENCODING",
+)
+
+
 def _subprocess_env() -> dict[str, str]:
-    env = dict(os.environ)
+    """Pass only the environment a dictionary parser actually needs.
+
+    The child process parses local ``.mdx`` files, so it must never inherit
+    API keys or other credentials from the parent process.
+    """
+    env = {key: os.environ[key] for key in _SUBPROCESS_ENV_KEYS if key in os.environ}
     env.setdefault("PYTHONUTF8", "1")
     env.setdefault("PYTHONIOENCODING", "utf-8")
     return env

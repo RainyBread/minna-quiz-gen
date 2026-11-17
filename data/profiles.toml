@@ -1,0 +1,114 @@
+# JLPTCraft 用途 / 配额 / 题型注册数据。
+# 代码只读取这里的预设；新增题型或调整配比不需要改 core。
+
+schema_version = 1
+
+[limits]
+max_count = 200
+default_count = 3
+
+[mock]
+total = 80
+
+[purposes.first_learn]
+label = "首学 / 巩固"
+keywords = ["首学", "初学", "第一次学", "新学", "巩固"]
+domain_in = 70
+domain_out = 30
+source_original = 50
+source_variant = 30
+source_ai = 20
+level_band = 0
+
+[purposes.unit_test]
+label = "单元测"
+keywords = ["单元测", "单元测试", "单元考", "周测", "小测"]
+domain_in = 40
+domain_out = 60
+source_original = 20
+source_variant = 30
+source_ai = 50
+level_band = 1
+
+[purposes.mock]
+label = "模拟卷"
+keywords = ["模拟卷", "考卷", "试卷"]
+# 课程模拟卷默认全课内；显式 ratio 覆盖留给后续任务。
+domain_in = 100
+domain_out = 0
+source_original = 5
+source_variant = 20
+source_ai = 75
+level_band = 1
+
+[purposes.review]
+label = "错题复现"
+keywords = ["错题", "复习", "重做", "巩固复习"]
+domain_in = 30
+domain_out = 70
+source_original = 0
+source_variant = 40
+source_ai = 60
+level_band = 1
+
+[types.kanji_to_kana]
+label = "日文汉字选假名"
+aliases = ["日文汉字选假名", "汉字选假名", "汉字读音", "读音"]
+mock_count = 30
+weight = 0.348362
+is_local = true
+slot_type = "reading"
+left_boundary = ""
+right_boundary = ""
+
+[types.kana_to_kanji]
+label = "假名选日文汉字"
+aliases = ["假名选日文汉字", "假名选汉字", "写汉字", "汉字题"]
+mock_count = 10
+weight = 0.204483
+is_local = true
+slot_type = "kanji"
+left_boundary = ""
+right_boundary = ""
+
+[types.vocab_choice]
+label = "词汇选择"
+aliases = ["词汇", "词语", "单词", "外来语"]
+mock_count = 5
+weight = 0.037586
+is_local = false
+slot_type = "vocab"
+left_boundary = ""
+right_boundary = ""
+
+[types.expression_choice]
+label = "表达选择"
+aliases = ["表达", "会话", "应答", "交际"]
+mock_count = 10
+weight = 0.074741
+is_local = false
+slot_type = "expression"
+left_boundary = ""
+right_boundary = ""
+
+[types.grammar_fill]
+label = "语法填空"
+aliases = ["语法", "助词", "填空"]
+mock_count = 25
+weight = 0.186207
+is_local = false
+slot_type = "grammar_form"
+left_boundary = ""
+right_boundary = ""
+
+# Demo plugin type: one file + one registration line in plugins/.
+[types.demo_antonym]
+label = "反义词（demo）"
+aliases = ["反义词", "反义"]
+mock_count = 0
+weight = 0
+is_local = true
+slot_type = "vocab"
+legacy_type = "vocab_choice"
+left_boundary = ""
+right_boundary = ""

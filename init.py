@@ -10,7 +10,9 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import platform
+import stat
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -25,6 +27,8 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from config import (
     SUPPORTED_SEMESTERS,
+    ConfigurationError,
+    SemesterViolation,
     Settings,
     ensure_directories,
     ensure_env_file,
@@ -139,6 +143,24 @@ def _coverage_lines(settings: Settings) -> list[str]:
     return lines
 
 
+def _secret_file_permission_result(path: Path, label: str) -> CheckResult | None:
+    """Warn when a local secret file is group/world-readable (POSIX only)."""
+    if os.name == "nt" or not path.exists():
+        return None
+    try:
+        mode = stat.S_IMODE(path.stat().st_mode)
+    except OSError as exc:
+        return CheckResult(f"{label} 权限", "INFO", f"无法读取权限：{exc}", hard=False)
+    if mode & 0o077:
+        return CheckResult(
+            f"{label} 权限",
+            "WARN",
+            f"{oct(mode)}；建议 chmod 600 {path}",
+            hard=False,
+        )
+    return CheckResult(f"{label} 权限", "OK", oct(mode), hard=False)
+
+
 def check_environment(settings: Settings, *, include_dev: bool = False) -> list[CheckResult]:
     results: list[CheckResult] = []
     py_version = sys.version_info
@@ -181,6 +203,13 @@ def check_environment(settings: Settings, *, include_dev: bool = False) -> list[
             )
         )
 
+    for label in (".env", ".env.bak"):
+        permission = _secret_file_permission_result(
+            settings.project_root / label, label
+        )
+        if permission is not None:
+            results.append(permission)
+
     results.append(
         CheckResult(
             "活动学期",
@@ -196,6 +225,7 @@ def check_environment(settings: Settings, *, include_dev: bool = False) -> list[
         ("题型规则", settings.question_types_path, False),
         ("设误规则", settings.common_mistakes_path, False),
         ("课程背景", settings.course_profile_path, False),
+        ("用途/配额配置", settings.profiles_path, True),
     ]:
         exists = path.exists()
         results.append(
@@ -308,7 +338,15 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(BANNER)
 
-    settings = load_settings()
+    try:
+        settings = load_settings()
+    except (ConfigurationError, SemesterViolation) as exc:
+        message = f"配置错误：{exc}"
+        if Console:
+            Console().print(f"[red]{message}[/red]")
+        else:
+            print(message)
+        return 2
     if not args.check:
         created_env = ensure_env_file(settings) is not None
         ensure_directories(settings)

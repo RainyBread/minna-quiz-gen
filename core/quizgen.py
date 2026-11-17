@@ -20,6 +20,7 @@ from core.models import (
     OptionRole,
     QuestionType,
     VocabEntry,
+    has_japanese,
     is_reading_text,
     now_iso,
     normalize_text,
@@ -32,9 +33,14 @@ from core.pools import (
     entry_key,
     entry_pos,
 )
-from core.prompts import build_question_prompt
+from core.prompts import build_carrier_prompt, build_question_prompt
+from core.request_log import log_llm_request
 from core.similarity import max_overlap
-from core.tagformat import clean_value, parse_question_tags
+from core.tagformat import (
+    clean_value,
+    parse_carrier_tags,
+    parse_question_tags,
+)
 
 TYPE_ABBR = {
     QuestionType.KANJI_TO_KANA: "ktk",
@@ -55,15 +61,17 @@ class QuestionBuildError(RuntimeError):
 class QuestionSpec:
     seq: int
     qtype: QuestionType
+    type_name: str = ""
+    is_plugin_type: bool = False
     scope: str = "in_syllabus"
     topic: str = ""
-    source_kind: str = "vocab"
     source_id: str = ""
     written: str = ""
     reading: str = ""
     meaning: str = ""
     pattern: str = ""
     correct_text: str = ""
+    expected_text: str = ""
     example: str = ""
     approved_forms: list[str] = field(default_factory=list)
     extension_gloss: str = ""
@@ -79,6 +87,9 @@ class QuestionSpec:
     point_key: str = ""
     clue: str = ""
     clue_hint: str = ""
+    request_id: str = ""
+    raw_response: str = ""
+    pending_defects: list[str] = field(default_factory=list)
 
     @property
     def lesson(self) -> int:
@@ -252,7 +263,16 @@ def build_specs(
     exposed = exposed_points or set()
     fallback_count = 0
     for type_value, amount in plan.type_plan.items():
-        qtype = QuestionType(type_value)
+        profile = (
+            context.profiles.type(type_value)
+            if context.profiles is not None
+            else None
+        )
+        legacy_value = profile.legacy_type if profile is not None else type_value
+        qtype = QuestionType(legacy_value)
+        is_plugin_type = bool(
+            profile is not None and profile.legacy_type != profile.name
+        )
         remaining = amount
         if qtype.is_reading_or_kanji or qtype == QuestionType.VOCAB_CHOICE:
             if plan.scope == "extend" and extension_pool is not None:
@@ -268,6 +288,8 @@ def build_specs(
                     seq += 1
                     used.add(normalize_text(item.written))
                     spec = _spec_from_extension(seq, qtype, item, plan)
+                    spec.type_name = type_value
+                    spec.is_plugin_type = is_plugin_type
                     _assign_source(spec, "new", item_bank, exposed, used_item_ids, plan.lessons)
                     specs.append(spec)
                 remaining -= len(items)
@@ -282,6 +304,8 @@ def build_specs(
                 for sample in samples:
                     seq += 1
                     spec = _spec_from_vocab(seq, qtype, sample.entry, plan)
+                    spec.type_name = type_value
+                    spec.is_plugin_type = is_plugin_type
                     preferred = source_slots.pop(0) if source_slots else "new"
                     actual = _assign_source(
                         spec, preferred, item_bank, exposed, used_item_ids, plan.lessons
@@ -300,6 +324,8 @@ def build_specs(
             for sample in samples:
                 seq += 1
                 spec = _spec_from_grammar(seq, qtype, sample, plan)
+                spec.type_name = type_value
+                spec.is_plugin_type = is_plugin_type
                 preferred = source_slots.pop(0) if source_slots else "new"
                 actual = _assign_source(
                     spec, preferred, item_bank, exposed, used_item_ids, plan.lessons
@@ -628,6 +654,49 @@ def _mutate_stem(stem: str) -> str:
     return stem
 
 
+def _last_resort_grammar_spec(
+    spec: QuestionSpec,
+    pools: TextbookPools,
+    rng: random.Random,
+) -> bool:
+    """Re-anchor a failed grammar/expression item to an attested example."""
+    samples = list(pools.grammar_candidates(range(37, 51)))
+    rng.shuffle(samples)
+    for sampled in samples:
+        point = sampled.point
+        for example in point.examples:
+            if not example:
+                continue
+            form = ""
+            if sampled.form and example.count(sampled.form) == 1:
+                form = sampled.form
+            else:
+                form = next(
+                    (
+                        approved
+                        for approved in point.approved_answer_forms
+                        if approved and example.count(approved) == 1
+                    ),
+                    "",
+                )
+            if not form:
+                continue
+            spec.point = point
+            spec.pattern = point.pattern_ja
+            spec.meaning = point.meaning_zh
+            spec.example = example
+            spec.approved_forms = list(point.approved_answer_forms)
+            spec.correct_text = form
+            spec.point_key = point.gp_id
+            if point.lesson:
+                spec.textbook_lesson = point.lesson
+                spec.course_lesson = max(0, point.lesson - 36)
+            if "E_CARRIER" not in spec.pending_defects:
+                spec.pending_defects.append("E_CARRIER")
+            return True
+    return False
+
+
 def generate_local_grammar(
     spec: QuestionSpec,
     pools: TextbookPools,
@@ -636,16 +705,45 @@ def generate_local_grammar(
     locks: Any = None,
     batch_id: str = "",
 ) -> GeneratedQuestion:
-    if not spec.example or spec.correct_text not in spec.example:
-        raise QuestionBuildError("没有可用的课内例句兜底")
-    if locks is not None and not locks.is_clue_present(spec.example, ""):
-        raise QuestionBuildError("课内例句没有可独立成题的线索")
+    if spec.expected_text:
+        spec.correct_text = spec.expected_text
+    if not spec.example:
+        if not _last_resort_grammar_spec(spec, pools, rng):
+            raise QuestionBuildError("没有可用的课内例句兜底")
+    if spec.example.count(spec.correct_text) != 1:
+        # Prefer an example where the target appears exactly once, so the
+        # reconstructed carrier cannot leak the answer outside the blank.
+        replacement = next(
+            (
+                example
+                for example in (spec.point.examples if spec.point else [])
+                if example and example.count(spec.correct_text) == 1
+            ),
+            "",
+        )
+        if replacement:
+            spec.example = replacement
+    if spec.example.count(spec.correct_text) != 1:
+        # Find an attested form in the example instead of inventing a blank.
+        for form in spec.approved_forms:
+            if form and spec.example.count(form) == 1:
+                spec.correct_text = form
+                break
+    if spec.example.count(spec.correct_text) != 1:
+        if not _last_resort_grammar_spec(spec, pools, rng):
+            raise QuestionBuildError("没有可用的课内例句兜底")
+    # Task A keeps the attested example usable as a fallback.  Task B's repair
+    # ladder owns clue-slot enforcement.
     stem = spec.example.replace(spec.correct_text, "[[blank]]", 1)
     spec.clue = spec.example
     style = style_key(spec.correct_text)
     fallback = _fallback_grammar_distractors(spec, pools, rng, 8, style=style)
     if len(fallback) < 3:
         fallback = _fallback_grammar_distractors(spec, pools, rng, 8)
+    if len(fallback) < 3:
+        fallback.extend(_last_resort_distractors(spec, pools, rng))
+        if "E_ZERO" not in spec.pending_defects:
+            spec.pending_defects.append("E_ZERO")
     if len(fallback) < 3:
         raise QuestionBuildError("语法干扰项不足")
     answer_key, options = _assemble_options(spec.correct_text, fallback[:3], rng)
@@ -666,6 +764,109 @@ def generate_local_grammar(
     )
 
 
+def _form_family(value: str) -> str:
+    value = normalize_text(value)
+    for suffix in (
+        "ませんでした", "ません", "ました", "ます", "です", "でした",
+        "だ", "な", "に", "の", "で", "た", "て", "そう", "よう",
+    ):
+        if value.endswith(suffix) and len(value) > len(suffix):
+            return value[: -len(suffix)]
+    return value
+
+
+def _span_matches_pattern(span: str, spec: QuestionSpec) -> bool:
+    pattern = (
+        (spec.pattern or "")
+        .replace("〜", "")
+        .replace("～", "")
+        .replace("…", "")
+        .replace("・", "")
+        .strip()
+    )
+    marked = normalize_text(span)
+    if pattern and pattern in marked:
+        return True
+    families = {
+        _form_family(form)
+        for form in (spec.approved_forms or [])
+        if form
+    }
+    return bool(families) and _form_family(span) in families
+
+
+def _validate_llm_span(span: str, spec: QuestionSpec) -> str:
+    """Validate the model-marked span against local key facts.
+
+    The model never sees the fixed answer form.  Locally we accept the span as
+    the key surface only when it is plausible for the target: a known approved
+    form (or a form in the same family / containing the pattern) for
+    grammar/expression, or a form containing the target lemma for vocabulary.
+    Otherwise this is a structural miss, not a semantic judgement.
+    """
+    span = (span or "").strip()
+    if not span:
+        raise QuestionBuildError("E_PARSE: [t] span is empty")
+    if normalize_text(span) == normalize_text(spec.correct_text):
+        return span
+    if spec.qtype in {QuestionType.GRAMMAR_FILL, QuestionType.EXPRESSION_CHOICE}:
+        approved = {
+            normalize_text(form)
+            for form in (spec.approved_forms or [])
+            if form
+        }
+        if approved and normalize_text(span) not in approved:
+            if _span_matches_pattern(span, spec):
+                return span
+            if has_japanese(span) and len(span) <= 40:
+                # Task A keeps the batch alive and records the structural
+                # miss; Task B's repair ladder decides whether to rewrite the
+                # carrier or replace the target.
+                if "E_ZERO" not in spec.pending_defects:
+                    spec.pending_defects.append("E_ZERO")
+                return span
+            raise QuestionBuildError(
+                f"E_ZERO: LLM span {span!r} is not an approved answer form"
+            )
+    elif spec.qtype == QuestionType.VOCAB_CHOICE and spec.written:
+        target = normalize_text(spec.written)
+        marked = normalize_text(span)
+        if target not in marked and marked not in target:
+            raise QuestionBuildError(
+                f"E_ZERO: LLM span {span!r} is not a form of {spec.written!r}"
+            )
+    return span
+
+
+def _parse_carrier_response(raw: str, spec: QuestionSpec) -> dict[str, Any]:
+    """Prefer the new [s]/[t] carrier protocol; accept legacy tags as fallback."""
+    carrier_parse = parse_carrier_tags(raw)
+    if carrier_parse.slots:
+        slot = carrier_parse.slots[0]
+        span = _validate_llm_span(slot.span, spec)
+        spec.correct_text = span
+        full = (
+            carrier_parse.carrier[: slot.start]
+            + "[[ans]]"
+            + span
+            + "[[/ans]]"
+            + carrier_parse.carrier[slot.end :]
+        )
+        return {
+            "full": full,
+            "clue": "",
+            "translation": "",
+            "carrier": carrier_parse.carrier,
+            "slots": carrier_parse.slots,
+            "warnings": list(carrier_parse.warnings),
+        }
+    legacy = parse_question_tags(raw)
+    legacy["carrier"] = carrier_parse.carrier
+    legacy["slots"] = []
+    legacy["warnings"] = list(carrier_parse.warnings)
+    return legacy
+
+
 def generate_llm(
     spec: QuestionSpec,
     llm: Any,
@@ -678,25 +879,42 @@ def generate_llm(
     *,
     batch_id: str = "",
 ) -> GeneratedQuestion:
+    spec.pending_defects = []
+    if not spec.expected_text:
+        spec.expected_text = spec.correct_text
+    else:
+        spec.correct_text = spec.expected_text
     if locks is not None:
         spec.clue_hint = locks.clue_hint(spec.correct_text)
-    prompt = build_question_prompt(spec)
+    prompt = build_carrier_prompt(spec)
+    request_id = log_llm_request(
+        settings,
+        batch_id=batch_id,
+        item_id=f"{batch_id}:{spec.seq}:{spec.qtype.value}",
+        model=settings.llm_model,
+        system=prompt["system"],
+        user=prompt["user"],
+    )
+    spec.request_id = request_id
     raw = llm.complete_text(
         prompt["system"],
         prompt["user"],
         temperature=settings.llm_temperature,
         max_tokens=settings.llm_max_tokens,
     )
-    parsed = parse_question_tags(raw)
+    spec.raw_response = raw
+    parsed = _parse_carrier_response(raw, spec)
     if not str(parsed.get("full") or "").strip():
-        raise QuestionBuildError("缺少 [SENTENCE] 完整句，拒绝裸框架题")
+        raise QuestionBuildError("E_PARSE: 缺少完整句，拒绝裸框架题")
     stem = _stem_from_full_or_blank(parsed, spec)
     clue = str(parsed.get("clue") or "").strip()
-    if locks is not None and (
-        not clue or not locks.is_clue_present(stem, "")
-    ):
-        raise QuestionBuildError("题干缺少决定性线索，拒绝裸框架题")
-    spec.clue = clue
+    if locks is not None and not locks.is_clue_present(stem, ""):
+        # Task A records the structural miss; Task B's repair ladder owns the
+        # clue-slot rewrite.  Dropping the whole item here would make a single
+        # weak LLM sentence look like a batch failure.
+        if "E_MULTI" not in spec.pending_defects:
+            spec.pending_defects.append("E_MULTI")
+    spec.clue = clue or spec.clue_hint
 
     if spec.qtype == QuestionType.VOCAB_CHOICE:
         pos_group = (
@@ -743,6 +961,17 @@ def generate_llm(
         if len(unique) >= 3:
             break
     if len(unique) < 3:
+        for value in _last_resort_distractors(spec, pools, rng):
+            key = normalize_text(value)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            unique.append(value)
+            if len(unique) >= 3:
+                break
+        if "E_ZERO" not in spec.pending_defects:
+            spec.pending_defects.append("E_ZERO")
+    if len(unique) < 3:
         raise QuestionBuildError("本地干扰项不足")
     answer_key, options = _assemble_options(spec.correct_text, unique, rng)
     explanation = _local_explanation(spec, options, pools, mdict, clue)
@@ -754,7 +983,7 @@ def generate_llm(
         explanation=explanation,
         translation=str(parsed.get("translation") or "").strip() or spec.meaning,
         model=settings.llm_model,
-        prompt_version="construct-v1",
+        prompt_version="carrier-v1",
         batch_id=batch_id,
         source_kind="new",
     )
@@ -979,6 +1208,47 @@ def _fallback_vocab_distractors(
     ]
     rng.shuffle(values)
     return values[:limit]
+
+
+def _last_resort_distractors(
+    spec: QuestionSpec,
+    pools: TextbookPools,
+    rng: random.Random,
+) -> list[str]:
+    """Fill a distractor shortage with any in-syllabus option.
+
+    This is deliberately permissive: Task B's repair ladder replaces these
+    with same-POS/same-style options.  Keeping the question structurally valid
+    is better than dropping the whole item at this stage.
+    """
+    seen = {normalize_text(spec.correct_text)}
+    values: list[str] = []
+
+    def add(value: str) -> None:
+        value = (value or "").strip()
+        key = normalize_text(value)
+        if not value or key in seen:
+            return
+        seen.add(key)
+        values.append(value)
+
+    if spec.qtype == QuestionType.VOCAB_CHOICE:
+        entries = list(pools.vocab_candidates(range(37, 51)))
+        rng.shuffle(entries)
+        for entry in entries:
+            add(entry.written)
+            if len(values) >= 3:
+                break
+    else:
+        samples = list(pools.grammar_candidates(range(37, 51)))
+        rng.shuffle(samples)
+        for sampled in samples:
+            add(sampled.form)
+            for form in sampled.point.approved_answer_forms:
+                add(form)
+            if len(values) >= 3:
+                break
+    return values[:3]
 
 
 def _fallback_grammar_distractors(
@@ -1211,6 +1481,9 @@ def _build_question(
             "reference_stems": list(spec.reference_stems),
             "clue": spec.clue,
             "clue_hint": spec.clue_hint,
+            "request_id": spec.request_id,
+            "meaning": spec.meaning,
+            "defects": list(spec.pending_defects),
         },
         scope=spec.scope,
         topic=spec.topic,

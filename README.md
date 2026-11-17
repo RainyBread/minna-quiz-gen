@@ -5,7 +5,7 @@
 ## 定位
 
 - **课内是锚**：教材词表/语法点提供考点、难度与答案权威。
-- **AI 是面**：LLM 只负责语境和干扰项，正确答案由本地注入。
+- **AI 是面**：LLM 只写载体句（`[s]…[t]靶词[/t]…[/s]`）；答案、选项、解析、题号全部本地生成。
 - **本地优先**：本地随机抽样 → 原题/本地变体 → MDict 补充 → 每题一次 LLM → 本地清洗/组卷。
 - **配比归编排，不归模型**：来源配比在扇出前确定；同一考点第二次出现必须换新表面。
 - **不超纲是默认**：用户可以自愿选择“课内 + 拓展干扰项”或“拓展学习”。
@@ -17,6 +17,9 @@ cd E:/MyData/大工/2026/minna-quiz-gen
 python -m venv .venv
 source .venv/Scripts/activate        # Windows Git Bash
 pip install -r requirements.txt
+
+# 仅在 LLM_PROVIDER=anthropic 时需要：
+# pip install -r requirements-anthropic.txt
 
 cp env.template .env
 # 只填 LLM_API_KEY；默认 DeepSeek-compatible / deepseek-chat
@@ -53,21 +56,59 @@ jp> 生成一份100题第44-50课考卷
 需求解析（本地优先 + 轻量标签兜底）
   -> 考点抽样（课次分层、避开已用/重复）
   -> 每题来源编排：原题 / 本地变体 / 新生成
-  -> 本地确定正确答案
-  -> 每题一次 LLM（标签输出）
-  -> 本地清洗选项、注入答案、打乱 A-D
+  -> LLM 只写载体句：[s]…[t]靶词[/t]…[/s]
+  -> 本地校验 span，构造 key/distractors/explanation
+  -> 装配为 Item schema v1（carrier + slots + key + distractors）
+  -> 三视图：stem_view / key_view / full_view；答案位由 seed 洗牌
   -> 并行执行，完成一题显示一题
-  -> 归档 JSON/Markdown + DB + 曝光记录
+  -> 归档 JSONL/试题册/答案册 + DB(questions/items) + 曝光记录
 ```
 
 关键点：
 
-- LLM 只输出 `[CLUE]决定性线索[/CLUE]` + `[SENTENCE]...[[ans]]正确项[[/ans]]...[/SENTENCE]` + 翻译；**不写选项、不写答案字母、不写解析**，不要求严格 JSON。
-- **正确答案由本地钉死**；完整句中必须原样出现固定正确项，系统再把该项替换成空格。这样不会出现“正确项是ます形、干扰项变形更对”的漂移。
-- 干扰项由本地锁词表/词表构造：优先选与正确项不同语义场、同活用形/同词性的词；不够时本地补位。解析由本地模板拼装“线索 + 正确项释义 + 干扰项释义”，不做排除式论证。
-- 裸框架题（无线索槽）直接弃掉补位；同场聚堆（四选项同语义场且无线索）也弃掉。
-- 单题失败只记录并继续；LLM 连续认证/连接失败才熔断。
-- 不做语义校验/LLM-as-judge；正确性来自本地答案、锁词表、来源锚点和本地清洗。
+- LLM 请求**不含**固定答案形式、选项、解析或答案字母；只给目标词/语法点、中文义、课次、掩码后的线索提示（必要时给靶词已挖空的参考例句）。
+- Item 只存 `carrier` + `slots` 偏移 + `key` + `distractors`；题干由 `carrier` 按偏移渲染，不再用 `[[blank]]` 字符串反推。
+- 三视图只读同一个 Item：试题册不含答案/解析，答案册含答案/解析/考点；`--answers` 选择 separate/inline/only/hidden。
+- 题目结构由本地不变量校验；LLM 网络/认证失败才熔断，单题结构失败只影响该题并走原题/变体/本地兜底。
+- 不做语义校验/LLM-as-judge；语义修复阶梯属于后续任务 B。
+
+## Item schema v1 与答案分离
+
+每道题落为唯一事实源 `Item`（`core/items.py`）：
+
+```text
+id / type / carrier / slots[{start,end,span,slot_type}]
+key{value,lemma,reading,pos,sense_id,attestation}
+distractors[{value,origin,slot_type}]
+explanation / meta{lessons,point,domain,source,seed,hashes,defects,repairs}
+```
+
+- `carrier` 是完整原句，`slots` 只存偏移；渲染题干时按偏移挖空，回环恒等可断言。
+- `key` 是答案事实，`distractors` 是错误项；Item 里没有答案字母，A-D 由渲染时按 seed 洗牌决定。
+- 三种视图：`stem_view`（试题册）、`key_view`（答案册）、`full_view`（JSONL）。
+- 旧 `GeneratedQuestion` 仅作兼容投影，不再是新生成/导出/审计的事实源。
+- 请求日志落盘 `data/logs/llm_requests/`（gitignored），可审计 key/选项/解析是否泄漏。
+
+答案模式：
+
+```bash
+python main.py "生成3道第44课读音题" --answers separate   # 试题册 + 答案册
+python main.py "生成2道第44课词汇题" --answers inline     # 合并显示
+python main.py "生成2道第44课词汇题" --answers only       # 只出答案册
+python main.py "生成2道第44课词汇题" --answers hidden --reveal  # 流式默认隐藏，逐题揭示
+```
+
+审计与迁移：
+
+```bash
+python main.py audit                   # 最近一批；指定批次用 --audit BATCH_ID
+python quiz.py audit [BATCH_ID]
+python tools/migrate_items_v1.py --dry-run
+python tools/migrate_items_v1.py --apply
+python tools/render_batch.py --batch <id> --seed 42 --out /tmp/render
+```
+
+审计报告包含：回环恒等 violations、无 carrier、试题册泄漏、请求 key 泄漏、答案册题号不一致；存在 hard violation 时 exit 1。
 
 ## 来源配比
 
@@ -97,7 +138,7 @@ python main.py "课内题，加拓展干扰项"                 # 目标课内�
 python main.py "围绕旅行生成10道拓展题"               # 拓展学习（目标可教材外）
 ```
 
-- `in_syllabus`：目标、正确项、干扰项全部来自教材；模拟卷强制此模式。
+- `in_syllabus`：目标、正确项、干扰项全部来自教材；模拟卷默认此模式。
 - `mdict_distractors`：目标/正确项课内，少量干扰项/解析来自拓展词。
 - `extend`：目标可为教材外词，题目和导出标注“拓展学习”。
 
@@ -195,11 +236,14 @@ python tools/check_repo_hygiene.py
 --use-case         first_learn | unit_test | mock | review
 --workers          LLM 并发数（默认 6）
 --seed             随机种子
---hide-answers     流式显示时不打印答案/解析
+--answers          auto | separate | inline | only | hidden
+--reveal           hidden 模式下逐题揭示答案
+--hide-answers     兼容别名，等价于 --answers hidden
 --no-stream        全部完成后再输出
 --dry-run          不写 DB/Markdown
 --json             打印批次 JSON
 --offline          仅本地读音/汉字题
+--audit [BATCH_ID] 审计 Item/视图/请求日志
 --health / --list / --export / --self-test
 ```
 
@@ -211,7 +255,16 @@ REPL 命令：`/help /list /show /export /rules /approve /reject /remine /stats 
 - 模拟卷：80 题五类（30/10/5/10/25），不含阅读/排序/完形 20 题。
 - 读音：优先使用构建期 UniDic 复核为 `true` 的教材 `kana`；没有 UniDic 也能运行。3 条特殊读音与 32 条 UniDic 不匹配条目跳过读音/汉字题，词义题保留。
 - 语法：44-50 的 31 个点已审核合并，共 52 个点有 answer forms。
-- 表达：固定表达由本地语法点钉死；LLM 只写含线索的对话语境，选项/解析本地构造。
+- 表达：固定表达由本地语法点钉死；LLM 只写载体对话，选项/解析本地构造。
+
+## 密钥与网络安全
+
+- 默认 `LLM_PROVIDER=openai`（DeepSeek 兼容），base URL 默认 `https://api.deepseek.com/v1`；`LLM_PROVIDER=anthropic` 时默认 `https://api.anthropic.com`。
+- `DEEPSEEK_API_KEY` / `STEPFUN_API_KEY` / `ANTHROPIC_API_KEY` 只在 `LLM_BASE_URL` 主机与对应服务商匹配时使用，避免把 Key 发往错误服务商；跨服务商请显式设置 `LLM_API_KEY`。
+- 非 localhost/私网地址的 `http://` base URL 会被拒绝，防止明文传输 Key。
+- `.env` 创建时尝试设为 `0600`（POSIX；Windows 请用文件属性/ACL）；`data/db`、`data/logs`（含 prompt 请求日志）目录会尝试设为 `0700`。`tools/simplify_env.py` 生成的 `.env.bak` 含 Key，请勿分享或放入云同步目录。
+- 生成与 OCR 会把必要提示词/教材片段/页面图片发送给所配置的 LLM 或视觉服务商；不要在不可信的第三方端点上处理敏感教材内容，完全离线请使用 `--offline` 或本地模型。
+- CI（`.github/workflows/security.yml`）运行 pytest、`tools/check_repo_hygiene.py --history` 和 `pip-audit`；本地可执行 `pre-commit install` 启用提交前卫生检查（push 前额外扫描 git 历史）。
 
 ## 版权与隐私
 

@@ -1,0 +1,13 @@
+{
+  "cases": [
+    {
+      "defect": "E_ANCHOR",
+      "reason": "answer appears outside the blank",
+      "before": {
+        "stem": "私は[[blank]]へ行きます。",
+        "correct_option_text": "学校"
+      },
+      "after": null
+    }
+  ]
+}

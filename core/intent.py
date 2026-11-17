@@ -7,45 +7,15 @@ ask for a mock exam.  Every result is clamped/validated locally.
 
 from __future__ import annotations
 
-import math
 import random
 import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from core.context import AppContext
-from core.models import (
-    BLUEPRINT_2024,
-    GENERATION_TYPES,
-    QuestionType,
-    normalize_text,
-)
+from core.models import QuestionType, normalize_text
+from core.profiles import Profiles
 from core.tagformat import first_tag, parse_tags
-
-MAX_COUNT = 200
-DEFAULT_COUNT = 3
-
-TYPE_ALIASES: dict[str, QuestionType] = {
-    "日文汉字选假名": QuestionType.KANJI_TO_KANA,
-    "汉字选假名": QuestionType.KANJI_TO_KANA,
-    "汉字读音": QuestionType.KANJI_TO_KANA,
-    "读音": QuestionType.KANJI_TO_KANA,
-    "假名选日文汉字": QuestionType.KANA_TO_KANJI,
-    "假名选汉字": QuestionType.KANA_TO_KANJI,
-    "写汉字": QuestionType.KANA_TO_KANJI,
-    "汉字题": QuestionType.KANA_TO_KANJI,
-    "词汇": QuestionType.VOCAB_CHOICE,
-    "词语": QuestionType.VOCAB_CHOICE,
-    "单词": QuestionType.VOCAB_CHOICE,
-    "外来语": QuestionType.VOCAB_CHOICE,
-    "表达": QuestionType.EXPRESSION_CHOICE,
-    "会话": QuestionType.EXPRESSION_CHOICE,
-    "应答": QuestionType.EXPRESSION_CHOICE,
-    "交际": QuestionType.EXPRESSION_CHOICE,
-    "语法": QuestionType.GRAMMAR_FILL,
-    "助词": QuestionType.GRAMMAR_FILL,
-    "填空": QuestionType.GRAMMAR_FILL,
-}
 
 UNSUPPORTED_ALIASES: dict[str, QuestionType] = {
     "排序": QuestionType.SENTENCE_ORDERING,
@@ -78,17 +48,6 @@ SCOPE_STRICT = ("不超纲", "课内", "大纲内", "教材内", "只用教材")
 SCOPE_DISTRACTOR = ("拓展干扰", "拓展选项", "扩展干扰")
 SCOPE_EXTEND = ("拓展", "课外", "超纲", "扩展学习", "自愿扩展", "教材外")
 
-USE_CASE_KEYWORDS = {
-    "unit_test": ("单元测", "单元测试", "单元考", "周测", "小测"),
-    "review": ("错题", "复习", "重做", "巩固复习"),
-    "first_learn": ("首学", "初学", "第一次学", "新学", "巩固"),
-}
-DEFAULT_SOURCE_MIX = {
-    "first_learn": {"original": 0.5, "variant": 0.3, "new": 0.2},
-    "unit_test": {"original": 0.2, "variant": 0.3, "new": 0.5},
-    "mock": {"original": 0.05, "variant": 0.2, "new": 0.75},
-    "review": {"original": 0.0, "variant": 0.4, "new": 0.6},
-}
 
 _CN_DIGITS = {
     "零": 0,
@@ -119,13 +78,15 @@ class QuizPlan:
     mode: str = "practice"  # practice | mock
     scope: str = "in_syllabus"  # in_syllabus | mdict_distractors | extend
     topic: str = ""
-    count: int = DEFAULT_COUNT
+    count: int = 0
     lessons: list[int] = field(default_factory=list)
     type_plan: dict[str, int] = field(default_factory=dict)
     seed: int | None = None
     source: str = "local"  # local | llm | default
     use_case: str = "first_learn"  # first_learn | unit_test | mock | review
     source_mix: dict[str, float] = field(default_factory=dict)
+    domain_ratio: dict[str, float] = field(default_factory=dict)
+    level_band: int | None = None
     explicit_count: bool = False
     explicit_lessons: bool = False
     explicit_types: bool = False
@@ -245,24 +206,32 @@ def _scope_from_text(text: str) -> str | None:
     return None
 
 
-def _supported_aliases(text: str) -> list[QuestionType]:
-    found: list[tuple[int, int, QuestionType]] = []
-    for alias, qtype in TYPE_ALIASES.items():
+def _profiles(context: AppContext) -> Profiles:
+    if context.profiles is None:
+        raise IntentError("缺少 data/profiles.toml；请从仓库数据恢复。")
+    return context.profiles
+
+
+def _supported_aliases(text: str, profiles: Profiles) -> list[str]:
+    found: list[tuple[int, int, str]] = []
+    for alias, name in profiles.alias_items():
         index = text.find(alias)
         if index >= 0:
-            found.append((index, -len(alias), qtype))
+            found.append((index, -len(alias), name))
     # Longer aliases at the same position win ("假名选汉字" over "汉字").
     found.sort(key=lambda item: (item[0], item[1]))
-    result: list[QuestionType] = []
-    for _, _, qtype in found:
-        if qtype not in result:
-            result.append(qtype)
+    result: list[str] = []
+    for _, _, name in found:
+        if name not in result:
+            result.append(name)
     return result
 
 
-def _per_type_counts(text: str) -> dict[str, int]:
+def _per_type_counts(text: str, profiles: Profiles) -> dict[str, int]:
     plan: dict[str, int] = {}
-    for alias, qtype in sorted(TYPE_ALIASES.items(), key=lambda item: -len(item[0])):
+    for alias, name in profiles.alias_items():
+        if name in plan:
+            continue
         patterns = [
             rf"{re.escape(alias)}\s*(\d+)\s*(?:道|题|題|个|個)",
             rf"(\d+)\s*(?:道|题|題|个|個)\s*(?:第?\s*\d+\s*[课課]\s*)?{re.escape(alias)}",
@@ -270,12 +239,12 @@ def _per_type_counts(text: str) -> dict[str, int]:
         for pattern in patterns:
             match = re.search(pattern, text)
             if match:
-                plan[qtype.value] = max(0, int(match.group(1)))
+                plan[name] = max(0, int(match.group(1)))
                 break
     return plan
 
 
-def _allocate(count: int, types: list[QuestionType]) -> dict[str, int]:
+def _allocate(count: int, types: list[str]) -> dict[str, int]:
     if not types:
         return {}
     unique = list(dict.fromkeys(types))
@@ -284,101 +253,32 @@ def _allocate(count: int, types: list[QuestionType]) -> dict[str, int]:
     base = count // len(unique)
     remainder = count % len(unique)
     plan: dict[str, int] = {}
-    for index, qtype in enumerate(unique):
+    for index, name in enumerate(unique):
         amount = base + (1 if index < remainder else 0)
         if amount:
-            plan[qtype.value] = amount
+            plan[name] = amount
     return plan
 
 
 def _weighted_plan(count: int, context: AppContext) -> dict[str, int]:
-    types = context.question_types.supported_types()
-    weighted = [
-        (key, rule.weight)
-        for key, rule in types.items()
-        if rule.weight > 0 and key in {t.value for t in GENERATION_TYPES}
-    ]
-    if not weighted:
-        weighted = [
-            (qtype.value, float(BLUEPRINT_2024.get(qtype.value, 1)))
-            for qtype in GENERATION_TYPES
-        ]
-    total = sum(weight for _, weight in weighted) or 1.0
-    quotas = [(key, count * weight / total) for key, weight in weighted]
-    plan = {key: int(math.floor(quota)) for key, quota in quotas}
-    remainder = count - sum(plan.values())
-    ranked = sorted(
-        quotas,
-        key=lambda item: (item[1] - math.floor(item[1]), item[1]),
-        reverse=True,
-    )
-    for key, _ in ranked[: max(0, remainder)]:
-        plan[key] = plan.get(key, 0) + 1
-    return {key: value for key, value in plan.items() if value > 0}
+    return _profiles(context).weighted_counts(count)
 
 
 def _mock_plan(context: AppContext, count: int | None = None) -> dict[str, int]:
-    course = context.course or {}
-    mock = course.get("mock_blueprint", {}) if isinstance(course, dict) else {}
-    counts = mock.get("counts") if isinstance(mock, dict) else None
-    if not isinstance(counts, dict) or not counts:
-        counts = {
-            QuestionType.KANJI_TO_KANA.value: 30,
-            QuestionType.KANA_TO_KANJI.value: 10,
-            QuestionType.VOCAB_CHOICE.value: 5,
-            QuestionType.EXPRESSION_CHOICE.value: 10,
-            QuestionType.GRAMMAR_FILL.value: 25,
-        }
-    allowed = {qtype.value for qtype in GENERATION_TYPES}
-    plan = {
-        key: int(value)
-        for key, value in counts.items()
-        if key in allowed and int(value) > 0
-    }
-    base = sum(plan.values())
-    if count and count > 0 and count != base:
-        plan = _scale_counts(plan, count)
-    return plan
+    return _profiles(context).mock_counts(count)
 
 
 def _scale_counts(counts: dict[str, int], target: int) -> dict[str, int]:
     """Scale a type plan proportionally to an exact target, largest remainder."""
-    base = sum(counts.values()) or 1
-    quotas = [(key, target * value / base) for key, value in counts.items()]
-    result = {key: int(math.floor(quota)) for key, quota in quotas}
-    remainder = target - sum(result.values())
-    ranked = sorted(
-        quotas,
-        key=lambda item: (item[1] - math.floor(item[1]), item[1]),
-        reverse=True,
-    )
-    for key, _ in ranked[: max(0, remainder)]:
-        result[key] = result.get(key, 0) + 1
-    return {key: value for key, value in result.items() if value > 0}
+    return Profiles.scale(counts, target)
 
 
-def _detect_use_case(text: str, is_mock: bool) -> str:
-    if is_mock:
-        return "mock"
-    for use_case, keywords in USE_CASE_KEYWORDS.items():
-        if any(keyword in text for keyword in keywords):
-            return use_case
-    return "first_learn"
+def _detect_use_case(text: str, is_mock: bool, profiles: Profiles) -> str:
+    return profiles.detect_purpose(text, is_mock)
 
 
 def _source_mix(context: AppContext, use_case: str) -> dict[str, float]:
-    course = context.course or {}
-    presets = course.get("source_mix_presets", {}) if isinstance(course, dict) else {}
-    raw = presets.get(use_case) if isinstance(presets, dict) else None
-    if isinstance(raw, dict) and raw:
-        values = {
-            key: float(raw.get(key, 0) or 0)
-            for key in ("original", "variant", "new")
-        }
-        total = sum(values.values())
-        if total > 0:
-            return {key: value / total for key, value in values.items()}
-    return dict(DEFAULT_SOURCE_MIX.get(use_case, DEFAULT_SOURCE_MIX["first_learn"]))
+    return _profiles(context).purpose(use_case).source_mix
 
 
 def _llm_plan(
@@ -387,9 +287,10 @@ def _llm_plan(
     llm: Any,
     warnings: list[str],
 ) -> dict[str, Any]:
+    profiles = _profiles(context)
     system = (
         "你是 JLPTCraft 的意图解析器。请分析用户需求，并用标签输出可执行计划。"
-        "题型从 kanji_to_kana、kana_to_kanji、vocab_choice、expression_choice、grammar_fill 中选择；"
+        "题型从 " + "、".join(profiles.type_names()) + " 中选择；"
         "范围从 in_syllabus、mdict_distractors、extend 中选择。"
         "课次 37-50 为教材绝对课次，1-14 为课程课次（教材=+36）。"
     )
@@ -416,7 +317,7 @@ def _llm_plan(
     count_text = first_tag(tags, ("COUNT",))
     count = _cn_number(count_text) if count_text else None
     if count:
-        result["count"] = max(1, min(MAX_COUNT, count))
+        result["count"] = max(1, min(profiles.max_count, count))
     lessons_text = first_tag(tags, ("LESSONS", "LESSON"))
     if lessons_text:
         parsed = _lessons_from_text(lessons_text, warnings)
@@ -431,13 +332,14 @@ def _llm_plan(
             if "=" in part or ":" in part:
                 key, value = re.split(r"[=:]", part, maxsplit=1)
                 key = key.strip()
-                if key in TYPE_ALIASES:
-                    key = TYPE_ALIASES[key].value
+                if key not in profiles.types:
+                    alias_name = profiles.type_by_alias(key)
+                    key = alias_name or key
                 try:
                     amount = int(value.strip())
                 except ValueError:
                     continue
-                if key in {q.value for q in GENERATION_TYPES} and amount > 0:
+                if key in profiles.types and amount > 0:
                     plan[key] = amount
         if plan:
             result["type_plan"] = plan
@@ -461,15 +363,27 @@ def parse_plan(
     force_mock: bool = False,
     seed: int | None = None,
     use_case_override: str | None = None,
+    count_override: int | None = None,
 ) -> QuizPlan:
     raw = (text or "").strip()
     normalized = _normalize(raw)
     warnings: list[str] = []
+    profiles = _profiles(context)
+    max_count = profiles.max_count
+    default_count = profiles.default_count
     if not normalized:
         raise IntentError("请输入需求，例如：生成一套模拟卷 / 生成3道第44课读音题")
 
-    is_mock = force_mock or any(keyword in normalized for keyword in MOCK_KEYWORDS)
-    explicit_count_value = _count_from_text(normalized)
+    is_mock = (
+        force_mock
+        or use_case_override == "mock"
+        or any(keyword in normalized for keyword in MOCK_KEYWORDS)
+    )
+    explicit_count_value = (
+        max(1, min(max_count, count_override))
+        if count_override is not None
+        else _count_from_text(normalized)
+    )
     explicit_count = explicit_count_value is not None
     lessons = _lessons_from_text(normalized, warnings)
     explicit_lessons = bool(lessons)
@@ -492,18 +406,24 @@ def parse_plan(
     if unsupported and is_mock:
         warnings.append("模拟卷按 80 题五类生成；阅读/排序/完形本期不生成。")
 
-    types = _supported_aliases(normalized)
-    per_type = _per_type_counts(normalized)
+    types = _supported_aliases(normalized, profiles)
+    per_type = _per_type_counts(normalized, profiles)
     explicit_types = bool(types or per_type)
     if per_type:
-        type_plan = per_type
+        # Per-type counts are already explicit; the first count in the text
+        # must not scale the whole plan.  Only the --n flag overrides totals.
+        type_plan = (
+            _scale_counts(per_type, count_override)
+            if count_override is not None
+            else per_type
+        )
         source = "local"
     elif types:
-        count = explicit_count_value or DEFAULT_COUNT
-        type_plan = _allocate(max(1, min(MAX_COUNT, count)), types)
+        count = explicit_count_value or default_count
+        type_plan = _allocate(max(1, min(max_count, count)), types)
         source = "local"
     elif is_mock:
-        type_plan = _mock_plan(context)
+        type_plan = _mock_plan(context, explicit_count_value)
         source = "local"
     else:
         type_plan = {}
@@ -516,7 +436,7 @@ def parse_plan(
         if extension_default:
             # Topic/extension practice is vocabulary-first by default.
             type_plan = {
-                QuestionType.VOCAB_CHOICE.value: explicit_count_value or DEFAULT_COUNT
+                "vocab_choice": explicit_count_value or default_count
             }
         # Lightweight LLM fallback for free-form requests without a recognizable type.
         elif llm is not None and not offline and getattr(llm, "available", False):
@@ -525,7 +445,7 @@ def parse_plan(
                 source = "llm"
                 if parsed.get("mode") == "mock":
                     is_mock = True
-                if parsed.get("count"):
+                if parsed.get("count") and count_override is None:
                     explicit_count_value = parsed["count"]
                     explicit_count = True
                 if parsed.get("lessons"):
@@ -539,9 +459,9 @@ def parse_plan(
                 if parsed.get("topic"):
                     topic = topic or parsed["topic"]
                 if parsed.get("mode") == "mock":
-                    type_plan = _mock_plan(context)
+                    type_plan = _mock_plan(context, count_override)
         if not type_plan:
-            type_plan = _weighted_plan(explicit_count_value or DEFAULT_COUNT, context)
+            type_plan = _weighted_plan(explicit_count_value or default_count, context)
 
     if is_mock:
         if not explicit_types:
@@ -549,10 +469,10 @@ def parse_plan(
                 context, explicit_count_value if explicit_count else None
             )
         count = sum(type_plan.values())
-        if count > MAX_COUNT:
-            warnings.append(f"题量上限 {MAX_COUNT}，已从 {count} 截断。")
-            type_plan = _scale_counts(type_plan, MAX_COUNT)
-            count = MAX_COUNT
+        if count > max_count:
+            warnings.append(f"题量上限 {max_count}，已从 {count} 截断。")
+            type_plan = _scale_counts(type_plan, max_count)
+            count = max_count
         if not explicit_lessons:
             lessons = list(range(37, 51))
         scope = "in_syllabus"
@@ -564,9 +484,9 @@ def parse_plan(
         count = sum(type_plan.values())
         if count <= 0:
             raise IntentError("题量必须大于 0。")
-        if count > MAX_COUNT:
-            warnings.append(f"题量上限 {MAX_COUNT}，已从 {count} 截断。")
-            count = MAX_COUNT
+        if count > max_count:
+            warnings.append(f"题量上限 {max_count}，已从 {count} 截断。")
+            count = max_count
             # Trim the plan deterministically.
             trimmed: dict[str, int] = {}
             remaining = count
@@ -602,9 +522,10 @@ def parse_plan(
         # A topic request is an extension-learning request unless explicitly restricted.
         scope = "extend"
 
-    use_case = use_case_override or _detect_use_case(normalized, is_mock)
-    if use_case not in DEFAULT_SOURCE_MIX:
+    use_case = use_case_override or _detect_use_case(normalized, is_mock, profiles)
+    if use_case not in profiles.purposes:
         use_case = "mock" if is_mock else "first_learn"
+    purpose = profiles.purpose(use_case)
     return QuizPlan(
         raw=raw,
         mode="mock" if is_mock else "practice",
@@ -616,7 +537,9 @@ def parse_plan(
         seed=seed if seed is not None else random.SystemRandom().randint(1, 2**31 - 1),
         source=source,
         use_case=use_case,
-        source_mix=_source_mix(context, use_case),
+        source_mix=purpose.source_mix,
+        domain_ratio=purpose.domain_ratio,
+        level_band=purpose.level_band,
         explicit_count=explicit_count,
         explicit_lessons=explicit_lessons,
         explicit_types=explicit_types,

@@ -7,7 +7,17 @@ from pathlib import Path
 from typing import Any
 
 from config import Settings
+from core.items import Item, item_from_json
 from core.models import GeneratedBatch, MistakeRulesFile, QuestionType, TYPE_LABELS_ZH, now_iso
+from core.render import (
+    AnswerMode,
+    RenderedQuestion,
+    render_answer_book,
+    render_inline_book,
+    render_item,
+    render_question_book,
+    resolve_answer_mode,
+)
 
 
 def _rule_name(rules: MistakeRulesFile | None, rule_id: str | None) -> str:
@@ -22,6 +32,15 @@ def _rule_name(rules: MistakeRulesFile | None, rule_id: str | None) -> str:
 
 def _display_stem(stem: str) -> str:
     return stem.replace("[[blank]]", "（　　）")
+
+
+def _safe_output_path(directory: Path, filename: str) -> Path:
+    """Resolve an archive path and ensure it stays inside ``directory``."""
+    base = directory.resolve()
+    target = (base / filename).resolve()
+    if target != base and base not in target.parents:
+        raise ValueError(f"unsafe archive filename: {filename!r}")
+    return target
 
 
 def export_batch_markdown(
@@ -112,6 +131,82 @@ def export_batch_markdown(
     return path
 
 
+def _render_batch_views(batch: GeneratedBatch) -> list[RenderedQuestion]:
+    rendered: list[RenderedQuestion] = []
+    seed = int(batch.batch_meta.seed or 0)
+    for index, data in enumerate(batch.items, start=1):
+        try:
+            item = item_from_json(data)
+            rendered.append(render_item(item, seed=seed, number=index))
+        except Exception:
+            continue
+    return rendered
+
+
+def _book_header(batch: GeneratedBatch, book_title: str) -> str:
+    meta = batch.batch_meta
+    mode = "模拟卷" if meta.mode == "mock" else "练习"
+    lessons = ", ".join(str(x) for x in meta.lessons) or "-"
+    types = ", ".join(f"{k}×{v}" for k, v in meta.type_plan.items()) or "-"
+    return "\n".join(
+        [
+            f"# JLPTCraft 大二上{mode}{book_title} · {meta.id}",
+            "",
+            f"- 学期：`{meta.semester.value}`",
+            f"- 请求：{meta.request or '-'}",
+            f"- 课次：{lessons}",
+            f"- 题型：{types}",
+            f"- 种子：{meta.seed}",
+            "",
+        ]
+    )
+
+
+def _book_body(text: str) -> str:
+    # Drop the renderer's generic ``# title`` line; the exporter supplies a
+    # stable header with batch/profile facts.
+    parts = text.split("\n", 1)
+    return parts[1].lstrip("\n") if len(parts) > 1 else text
+
+
+def export_question_book(
+    rendered: list[RenderedQuestion],
+    path: Path,
+    *,
+    batch: GeneratedBatch,
+) -> Path:
+    text = _book_header(batch, "试题册") + _book_body(
+        render_question_book(rendered, title="试题册")
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    return path
+
+
+def export_answer_book(
+    rendered: list[RenderedQuestion],
+    path: Path,
+    *,
+    batch: GeneratedBatch,
+) -> Path:
+    text = _book_header(batch, "答案册") + _book_body(
+        render_answer_book(rendered, title="答案册")
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    return path
+
+
+def export_full_jsonl(batch: GeneratedBatch, path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        json.dumps(item, ensure_ascii=False, sort_keys=True)
+        for item in batch.items
+    ]
+    path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    return path
+
+
 def archive_batch(
     settings: Settings,
     batch: GeneratedBatch,
@@ -120,14 +215,44 @@ def archive_batch(
     include_answers: bool = True,
 ) -> tuple[Path, Path]:
     settings.exam_dir.mkdir(parents=True, exist_ok=True)
-    json_path = settings.exam_dir / f"{batch.batch_meta.id}.json"
-    md_path = settings.exam_dir / f"{batch.batch_meta.id}.md"
+    json_path = _safe_output_path(settings.exam_dir, f"{batch.batch_meta.id}.json")
+    md_path = _safe_output_path(settings.exam_dir, f"{batch.batch_meta.id}.md")
     payload = {
         "exported_at": now_iso(),
         "batch": batch.model_dump(mode="json"),
     }
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    export_batch_markdown(batch, md_path, rules=rules, include_answers=include_answers)
+    if not batch.items:
+        export_batch_markdown(batch, md_path, rules=rules, include_answers=include_answers)
+        return json_path, md_path
+
+    rendered = _render_batch_views(batch)
+    if not rendered:
+        export_batch_markdown(batch, md_path, rules=rules, include_answers=include_answers)
+        return json_path, md_path
+    mode = resolve_answer_mode(
+        batch.batch_meta.answers_mode,
+        is_mock=batch.batch_meta.mode == "mock",
+    )
+    export_full_jsonl(batch, _safe_output_path(settings.exam_dir, f"{batch.batch_meta.id}.items.jsonl"))
+    answer_path = _safe_output_path(
+        settings.exam_dir, f"{batch.batch_meta.id}-answers.md"
+    )
+    if mode == AnswerMode.ONLY:
+        export_answer_book(rendered, md_path, batch=batch)
+        return json_path, md_path
+    if mode == AnswerMode.INLINE:
+        inline_path = _safe_output_path(
+            settings.exam_dir, f"{batch.batch_meta.id}-inline.md"
+        )
+        text = _book_header(batch, "题目与答案") + _book_body(
+            render_inline_book(rendered, title="题目与答案")
+        )
+        inline_path.write_text(text.rstrip() + "\n", encoding="utf-8")
+        return json_path, inline_path
+    export_question_book(rendered, md_path, batch=batch)
+    if include_answers:
+        export_answer_book(rendered, answer_path, batch=batch)
     return json_path, md_path
 
 
@@ -146,9 +271,26 @@ def export_existing_batch(
     rules: MistakeRulesFile | None = None,
     include_answers: bool = True,
 ) -> Path:
-    target = settings.exam_dir / f"{batch.batch_meta.id}.md"
+    if not batch.items:
+        # Migrated legacy batches keep their canonical Items in the DB.
+        from core.db import list_items
+
+        batch.items = list_items(settings, batch.batch_meta.id)
+    target = _safe_output_path(settings.exam_dir, f"{batch.batch_meta.id}.md")
     if not include_answers:
-        target = settings.exam_dir / f"{batch.batch_meta.id}-student.md"
+        target = _safe_output_path(
+            settings.exam_dir, f"{batch.batch_meta.id}-student.md"
+        )
+    if batch.items:
+        rendered = _render_batch_views(batch)
+        if rendered:
+            export_question_book(rendered, target, batch=batch)
+            if include_answers:
+                answer_path = _safe_output_path(
+                    settings.exam_dir, f"{batch.batch_meta.id}-answers.md"
+                )
+                export_answer_book(rendered, answer_path, batch=batch)
+            return target
     return export_batch_markdown(
         batch, target, rules=rules, include_answers=include_answers
     )

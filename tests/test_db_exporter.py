@@ -1,8 +1,12 @@
 from dataclasses import replace
 
+import pytest
+from pydantic import ValidationError
+
 from config import ensure_directories
 from core.db import get_batch, insert_batch, list_batches, stats
-from core.exporter import archive_batch, export_existing_batch
+from core.exporter import _safe_output_path, archive_batch, export_existing_batch
+from core.models import BatchMeta
 
 
 def _tmp_settings(settings, tmp_path):
@@ -13,6 +17,20 @@ def _tmp_settings(settings, tmp_path):
         cache_dir=tmp_path / "cache",
         log_dir=tmp_path / "logs",
     )
+
+
+def test_batch_id_rejects_path_segments():
+    with pytest.raises(ValidationError):
+        BatchMeta(id="../escape")
+
+
+def test_batch_id_accepts_generated_style_ids():
+    assert BatchMeta(id="b2a-20261117-204807-58b1").id == "b2a-20261117-204807-58b1"
+
+
+def test_safe_output_path_rejects_escape(tmp_path):
+    with pytest.raises(ValueError):
+        _safe_output_path(tmp_path, "../escape.md")
 
 
 def test_archive_and_db_roundtrip(settings, context, tmp_path, self_batch):

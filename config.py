@@ -7,13 +7,19 @@ environment variables but are never required for core generation.
 
 from __future__ import annotations
 
+import ipaddress
 import os
 import shutil
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
+
+
+class ConfigurationError(ValueError):
+    """Raised when runtime configuration could leak credentials or is invalid."""
 
 
 class SemesterViolation(ValueError):
@@ -103,6 +109,88 @@ def _float_env(name: str, default: float) -> float:
         return default
 
 
+DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1"
+DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
+
+
+def _is_local_host(host: str) -> bool:
+    """True for loopback/private/LAN hosts where plain HTTP is acceptable."""
+    value = (host or "").strip().lower()
+    if not value:
+        return False
+    if value in {"localhost", "localhost.localdomain"} or value.endswith(
+        (".local", ".internal", ".lan", ".localhost")
+    ):
+        return True
+    try:
+        address = ipaddress.ip_address(value)
+    except ValueError:
+        # Single-label hostnames are usually local LAN names; public DNS names
+        # always contain a dot, so those are still rejected over plain HTTP.
+        return "." not in value
+    return address.is_loopback or address.is_private or address.is_link_local
+
+
+def _validate_base_url(url: str, variable: str) -> None:
+    """Reject plaintext HTTP to non-local hosts so API keys cannot leak."""
+    if not url:
+        return
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"}:
+        raise ConfigurationError(
+            f"{variable} 必须以 http:// 或 https:// 开头：{url!r}"
+        )
+    if parsed.scheme == "https":
+        return
+    if not _is_local_host(parsed.hostname or ""):
+        raise ConfigurationError(
+            f"{variable} 对非本地主机使用明文 http，会泄露 API Key；"
+            f"请改用 https://，或仅对 localhost/私网地址使用 http：{url!r}"
+        )
+
+
+def _select_llm_api_key(provider: str, base_url: str) -> str:
+    """Pick only a key that belongs to the configured provider/host.
+
+    ``LLM_API_KEY`` is the explicit, provider-agnostic override.  Legacy
+    provider-specific variables are accepted only when the base URL host
+    matches that provider, preventing e.g. a StepFun key from being sent to
+    DeepSeek (or a DeepSeek key from being sent to Anthropic).
+    """
+    explicit = _first_env("LLM_API_KEY")
+    if explicit:
+        return explicit
+    if provider in {"anthropic", "claude"}:
+        return _first_env("ANTHROPIC_API_KEY")
+
+    host = (urlparse(base_url).hostname or "").lower()
+    provider_keys = (
+        ("deepseek.com", "DEEPSEEK_API_KEY"),
+        ("stepfun.com", "STEPFUN_API_KEY"),
+        ("openai.com", "OPENAI_API_KEY"),
+    )
+    for domain, env_name in provider_keys:
+        if host == domain or host.endswith("." + domain):
+            return _first_env(env_name)
+    return ""
+
+
+def _restrict_env_permissions(path: Path) -> None:
+    """Best-effort chmod 0600 for local secret files."""
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
+def _restrict_directory_permissions(path: Path) -> None:
+    """Best-effort chmod 0700 for directories holding prompts/answers."""
+    try:
+        os.chmod(path, 0o700)
+    except OSError:
+        pass
+
+
 def normalize_base_url(url: str) -> str:
     """Turn full endpoint URLs into an OpenAI SDK base_url."""
     normalized = (url or "").strip().rstrip("/")
@@ -187,6 +275,10 @@ class Settings:
     @property
     def blueprint_path(self) -> Path:
         return self.textbook_dir / "exam_blueprint.json"
+
+    @property
+    def profiles_path(self) -> Path:
+        return self.data_dir / "profiles.toml"
 
     @property
     def course_profile_path(self) -> Path:
@@ -291,15 +383,26 @@ def load_settings(project_root: Path | None = None) -> Settings:
         root, _first_env("TEXTBOOK_PDF_DIR"), "教材pdf"
     )
 
-    llm_base_url = normalize_base_url(
-        _first_env("LLM_BASE_URL", "DEEPSEEK_BASE_URL", default="https://api.deepseek.com/v1")
-    )
-    llm_model = _first_env("LLM_MODEL", "DEEPSEEK_MODEL", default="deepseek-chat")
-    llm_api_key = _first_env(
-        "LLM_API_KEY", "DEEPSEEK_API_KEY", "STEPFUN_API_KEY", default=""
-    )
+    llm_provider = _first_env("LLM_PROVIDER", default="openai").lower()
+    if llm_provider in {"anthropic", "claude"}:
+        llm_base_url = normalize_base_url(
+            _first_env("LLM_BASE_URL", default=DEFAULT_ANTHROPIC_BASE_URL)
+        )
+        llm_model = _first_env("LLM_MODEL", "ANTHROPIC_MODEL", default="")
+    else:
+        llm_base_url = normalize_base_url(
+            _first_env(
+                "LLM_BASE_URL",
+                "DEEPSEEK_BASE_URL",
+                default=DEFAULT_DEEPSEEK_BASE_URL,
+            )
+        )
+        llm_model = _first_env("LLM_MODEL", "DEEPSEEK_MODEL", default="deepseek-chat")
+    _validate_base_url(llm_base_url, "LLM_BASE_URL")
+    llm_api_key = _select_llm_api_key(llm_provider, llm_base_url)
 
     vision_base_url = normalize_base_url(_first_env("VISION_BASE_URL", default=""))
+    _validate_base_url(vision_base_url, "VISION_BASE_URL")
     vision_model = _first_env("VISION_MODEL", default="")
     vision_api_key = _first_env("VISION_API_KEY", default="")
     vision_provider = _first_env("VISION_PROVIDER", default="auto").lower()
@@ -316,7 +419,7 @@ def load_settings(project_root: Path | None = None) -> Settings:
         mdict_dir=mdict_dir,
         legacy_root=legacy_root,
         textbook_pdf_dir=textbook_pdf_dir,
-        llm_provider=_first_env("LLM_PROVIDER", default="openai").lower(),
+        llm_provider=llm_provider,
         llm_base_url=llm_base_url,
         llm_model=llm_model,
         llm_api_key=llm_api_key,
@@ -350,6 +453,8 @@ def ensure_directories(settings: Settings) -> list[Path]:
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
             created.append(path)
+    for private_dir in (settings.db_dir, settings.log_dir):
+        _restrict_directory_permissions(private_dir)
     for semester in (Semester.BIG1_SPRING, Semester.BIG2_AUTUMN):
         keep = settings.exam_root / semester.value / ".gitkeep"
         if not keep.exists() and keep.parent.exists():
@@ -366,9 +471,11 @@ def ensure_env_file(settings: Settings) -> Path | None:
     template = settings.project_root / "env.template"
     if template.exists():
         shutil.copyfile(template, env_path)
+        _restrict_env_permissions(env_path)
         return env_path
     env_path.write_text(
         "# JLPTCraft minimal local config\nLLM_API_KEY=\n",
         encoding="utf-8",
     )
+    _restrict_env_permissions(env_path)
     return env_path

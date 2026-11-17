@@ -18,6 +18,8 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 from config import (
+    ConfigurationError,
+    SemesterViolation,
     Settings,
     ensure_directories,
     load_settings,
@@ -36,7 +38,15 @@ from core.exporter import (
     archive_batch,
     export_existing_batch,
     load_batch_json,
-    render_batch_console,
+)
+from core.items import item_from_json
+from core.render import (
+    AnswerMode,
+    render_answer_book,
+    render_inline_book,
+    render_item,
+    render_question_book,
+    resolve_answer_mode,
 )
 from core.extension import (
     ExtensionPool,
@@ -51,7 +61,7 @@ from core.intent import (
     parse_plan,
 )
 from core.item_bank import ItemBank
-from core.llm import LLMClient, LLMError, LLMUnavailable
+from core.llm import LLMClient, LLMError, LLMUnavailable, create_llm
 from core.locks import LockTable
 from core.mdict_index import MDictIndex
 from core.miner import run_mining_and_review
@@ -107,17 +117,17 @@ def _console() -> Any:
 def _print(message: str, style: str | None = None) -> None:
     console = _console()
     if console:
-        console.print(message, style=style)
+        console.print(message, style=style, markup=False, highlight=False)
     else:
         print(message)
 
 
 def _error(message: str) -> None:
-    _print(f"[red]{message}[/red]" if Console else message)
+    _print(message, "red")
 
 
-def _make_llm(settings: Settings, offline: bool) -> LLMClient:
-    return LLMClient(settings, offline=offline)
+def _make_llm(settings: Settings, offline: bool) -> Any:
+    return create_llm(settings, offline=offline)
 
 
 def _make_mdict(settings: Settings) -> MDictIndex:
@@ -152,10 +162,35 @@ def _print_header(
     _print("输入自然语言需求或 /help；Ctrl+C 退出。", "dim")
 
 
+def _print_rendered_batch(batch: Any) -> None:
+    rendered = []
+    seed = int(batch.batch_meta.seed or 0)
+    for index, data in enumerate(batch.items, start=1):
+        try:
+            rendered.append(render_item(item_from_json(data), seed=seed, number=index))
+        except Exception:
+            continue
+    if not rendered:
+        return
+    mode = resolve_answer_mode(
+        batch.batch_meta.answers_mode,
+        is_mock=batch.batch_meta.mode == "mock",
+    )
+    if mode == AnswerMode.ONLY:
+        _print(render_answer_book(rendered))
+    elif mode == AnswerMode.INLINE:
+        _print(render_inline_book(rendered))
+    else:
+        _print(render_question_book(rendered))
+
+
 def _print_plan(plan: QuizPlan) -> None:
     mode = "模拟卷" if plan.mode == "mock" else "练习"
     lessons = ", ".join(str(item) for item in plan.lessons)
-    mix = " / ".join(f"{key}:{value:.0%}" for key, value in plan.source_mix.items())
+    mix = " / ".join(
+        f"{'ai' if key == 'new' else key}:{value:.0%}"
+        for key, value in plan.source_mix.items()
+    )
     _print(
         f"计划：{mode} {plan.total} 题 | 用途 {plan.use_case} | 范围 {lessons} | "
         f"{plan.type_summary()} | {plan.scope_label()}"
@@ -203,6 +238,7 @@ def _parse_with_clarification(
     seed: int | None,
     use_case: str | None,
     interactive: bool,
+    count_override: int | None = None,
 ) -> QuizPlan:
     kwargs = dict(
         llm=llm,
@@ -212,6 +248,7 @@ def _parse_with_clarification(
         force_mock=force_mock,
         seed=seed,
         use_case_override=use_case,
+        count_override=count_override,
     )
     skip_vague_prompt = False
     try:
@@ -277,12 +314,15 @@ def _generate(
     json_output: bool = False,
     no_stream: bool = False,
     hide_answers: bool = False,
+    answers: str = "auto",
+    reveal: bool = False,
     force_mock: bool = False,
     scope_override: str | None = None,
     topic_override: str | None = None,
     workers: int | None = None,
     seed: int | None = None,
     use_case: str | None = None,
+    count_override: int | None = None,
     interactive: bool = True,
 ) -> Any:
     try:
@@ -305,6 +345,7 @@ def _generate(
         force_mock=force_mock,
         seed=seed,
         use_case=use_case,
+        count_override=count_override,
         interactive=interactive,
     )
 
@@ -315,19 +356,23 @@ def _generate(
         local_types = {
             key: value
             for key, value in plan.type_plan.items()
-            if QuestionType(key).is_local
+            if context.profiles is not None
+            and key in context.profiles.types
+            and context.profiles.type(key).is_local
         }
         if not local_types:
             raise LLMUnavailable("该请求需要 LLM；当前未配置 LLM_API_KEY。")
         plan.type_plan = local_types
         plan.count = sum(local_types.values())
         plan.scope = "in_syllabus"
-        plan.warnings.append("未配置 LLM：已自动只保留读音/汉字题。")
+        plan.warnings.append("未配置 LLM：已自动只保留本地题型（含插件本地题型）。")
 
     if plan.scope != "in_syllabus" and not mdict.available:
         plan.scope = "in_syllabus"
         plan.topic = ""
         plan.warnings.append("未发现 MDict：已回退到课内模式。")
+    elif not mdict.available:
+        plan.warnings.append("未发现 MDict：课内出题正常；拓展模式将降级。")
     if plan.scope == "extend" and mdict.available and plan.topic:
         if len(extension_pool.candidates(plan.topic)) < plan.count:
             live = live_extension_candidates(
@@ -357,11 +402,13 @@ def _generate(
         stream=not json_output and not no_stream,
         dry_run=dry_run,
         hide_answers=hide_answers,
+        answers=answers,
+        reveal=reveal,
     )
     if json_output:
         _print(json.dumps(result.batch.model_dump(mode="json"), ensure_ascii=False, indent=2))
     elif no_stream and result.batch is not None:
-        _print(render_batch_console(result.batch))
+        _print_rendered_batch(result.batch)
 
     if result.batch is not None:
         _print(
@@ -374,6 +421,7 @@ def _generate(
             _print(
                 "本地指标："
                 f"来源 {metrics.get('source_counts')} | "
+                f"域 {metrics.get('domain_counts')} | "
                 f"考点覆盖 {metrics.get('point_coverage')} | "
                 f"题面重合 max/avg {metrics.get('stem_overlap_max')}/{metrics.get('stem_overlap_avg')} | "
                 f"超纲选项率 {metrics.get('out_of_level_rate')} | "
@@ -390,6 +438,12 @@ def _generate(
         if result.json_path:
             _print(f"已归档：{result.json_path}")
             _print(f"已导出：{result.md_path}")
+            if result.md_path:
+                answer_path = Path(result.md_path).with_name(
+                    Path(result.md_path).stem + "-answers.md"
+                )
+                if answer_path.exists():
+                    _print(f"答案册：{answer_path}")
             if result.duplicates:
                 _print("重复题未入库：" + ", ".join(result.duplicates), "yellow")
         elif dry_run:
@@ -805,12 +859,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--topic", help="拓展主题，例如 旅行")
     parser.add_argument(
         "--use-case",
+        "--purpose",
+        dest="use_case",
         choices=("first_learn", "unit_test", "mock", "review"),
-        help="来源配比用途：首学/单元测/模拟卷/错题复习",
+        help="用途预设：首学/单元测/模拟卷/错题复习",
+    )
+    parser.add_argument(
+        "--n",
+        "--count",
+        dest="count",
+        type=int,
+        help="题量覆盖（flag 层，零 LLM 意图解析）",
     )
     parser.add_argument("--workers", type=int, help="LLM 并发数")
     parser.add_argument("--seed", type=int, help="随机种子")
     parser.add_argument("--hide-answers", action="store_true", help="流式显示时不打印答案/解析")
+    parser.add_argument(
+        "--answers",
+        choices=("auto", "separate", "inline", "only", "hidden"),
+        default="auto",
+        help="答案呈现：separate 双册/inline 合并/only 仅答案册/hidden 流式隐藏",
+    )
+    parser.add_argument("--reveal", action="store_true", help="hidden 模式下逐题揭示答案")
     parser.add_argument("--no-stream", action="store_true", help="全部完成后再输出")
     parser.add_argument("--dry-run", action="store_true", help="只生成，不写 DB/Markdown")
     parser.add_argument("--json", action="store_true", help="打印生成批次 JSON")
@@ -820,12 +890,36 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--export", metavar="BATCH_ID", help="导出批次 Markdown")
     parser.add_argument("--no-answers", action="store_true", help="导出学生版（不含答案）")
     parser.add_argument("--self-test", action="store_true", help="离线自检")
+    parser.add_argument(
+        "--audit",
+        nargs="?",
+        const="",
+        metavar="BATCH_ID",
+        help="审计 Item/视图/请求日志；省略批次则审计最近一批",
+    )
     return parser.parse_args(argv)
+
+
+def audit_command(batch_id: str = "", json_output: bool = False) -> int:
+    from core.audit import audit_items, audit_text
+
+    settings = load_settings()
+    ensure_directories(settings)
+    report = audit_items(settings, batch_id)
+    if json_output:
+        _print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
+    else:
+        _print(audit_text(report))
+    return 0 if report.ok else 1
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    settings = load_settings()
+    try:
+        settings = load_settings()
+    except (ConfigurationError, SemesterViolation) as exc:
+        _error(f"配置错误：{exc}")
+        return 2
     ensure_directories(settings)
     if args.health:
         from init import _render_check_report, check_environment
@@ -834,6 +928,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.self_test:
         return self_test(settings)
+    if args.audit is not None:
+        return audit_command(args.audit, args.json)
+    if args.request and args.request.strip() == "audit":
+        return audit_command("", args.json)
     if args.list:
         init_db(settings)
         _list_batches(settings)
@@ -842,6 +940,12 @@ def main(argv: list[str] | None = None) -> int:
         init_db(settings)
         _export_batch(settings, args.export, include_answers=not args.no_answers)
         return 0
+    if not args.request and (args.mock or args.use_case or args.count is not None):
+        args.request = (
+            "生成一套模拟卷"
+            if (args.mock or args.use_case == "mock")
+            else "生成题"
+        )
     if not args.request and not args.mock:
         return run_repl(settings, offline=args.offline)
     request = args.request or "生成一套模拟卷"
@@ -854,12 +958,15 @@ def main(argv: list[str] | None = None) -> int:
             json_output=args.json,
             no_stream=args.no_stream,
             hide_answers=args.hide_answers,
-            force_mock=args.mock,
+            answers=args.answers,
+            reveal=args.reveal,
+            force_mock=args.mock or args.use_case == "mock",
             scope_override=args.scope,
             topic_override=args.topic,
             workers=args.workers,
             seed=args.seed,
             use_case=args.use_case,
+            count_override=args.count,
             interactive=sys.stdin.isatty(),
         )
     except (IntentError, LLMError, DatabaseError, ContextError, UnsupportedTypeError) as exc:
