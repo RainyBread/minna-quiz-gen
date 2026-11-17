@@ -2,4 +2,4 @@
 python-dotenv>=1.0.1,<2
 pydantic>=2.8,<3
 rich>=13.9,<15
-openai>=1.50,<3
+openai>=3.51.0,<4
