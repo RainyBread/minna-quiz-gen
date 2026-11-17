@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "version": 1,
+    "generated_at": "2026-11-17T20:03:10+08:00",
+    "note": "Only Japanese headwords/readings/relations; Chinese gloss is fetched from local MDict at runtime.",
+    "count": 5
+  },
+  "entries": [
+    {
+      "written": "亡命",
+      "kana": "ぼうめい",
+      "pos": "",
+      "topics": [
+        "旅行"
+      ],
+      "relation": "亡命",
+      "source_kinds": [
+        "thesaurus_like"
+      ],
+      "confidence": "high",
+      "reviewed": true,
+      "notes": ""
+    },
+    {
+      "written": "出国",
+      "kana": "しゅっこく",
+      "pos": "",
+      "topics": [
+        "旅行"
+      ],
+      "relation": "出国",
+      "source_kinds": [
+        "thesaurus_like"
+      ],
+      "confidence": "high",
+      "reviewed": true,
+      "notes": ""
+    },
+    {
+      "written": "巡る",
+      "kana": "めぐる",
+      "pos": "",
+      "topics": [
+        "旅行"
+      ],
+      "relation": "巡る",
+      "source_kinds": [
+        "thesaurus_like"
+      ],
+      "confidence": "high",
+      "reviewed": true,
+      "notes": ""
+    },
+    {
+      "written": "巡礼",
+      "kana": "じゅんれい",
+      "pos": "",
+      "topics": [
+        "旅行"
+      ],
+      "relation": "巡礼",
+      "source_kinds": [
+        "thesaurus_like"
+      ],
+      "confidence": "high",
+      "reviewed": true,
+      "notes": ""
+    },
+    {
+      "written": "彷徨く",
+      "kana": "うろつく",
+      "pos": "",
+      "topics": [
+        "旅行"
+      ],
+      "relation": "彷徨く",
+      "source_kinds": [
+        "thesaurus_like"
+      ],
+      "confidence": "high",
+      "reviewed": true,
+      "notes": ""
+    }
+  ]
+}

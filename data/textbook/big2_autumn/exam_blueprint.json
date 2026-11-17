@@ -1,0 +1,48 @@
+{
+  "source": "2024年日语期末试卷（官方100题）",
+  "total_questions": 100,
+  "counts": {
+    "kanji_to_kana": 30,
+    "kana_to_kanji": 10,
+    "vocab_choice": 5,
+    "expression_choice": 10,
+    "grammar_fill": 25,
+    "sentence_ordering": 5,
+    "cloze": 5,
+    "reading": 10
+  },
+  "missing": [
+    "q13（OCR 不可用）"
+  ],
+  "reference_blueprints": [
+    {
+      "source": "25级综合日语1期末测试通知（95题，跨课程参考）",
+      "total_questions": 95,
+      "counts": {
+        "kanji_to_kana": 20,
+        "kana_to_kanji": 20,
+        "vocab_choice": 15,
+        "grammar_fill": 30,
+        "sentence_ordering": 5,
+        "cloze": 5,
+        "reading": 5
+      },
+      "confidence": "low",
+      "stated_total": 95,
+      "counts_total": 100,
+      "reading_passages": "4-5篇（通知未给每题数量）",
+      "note": "通知明确计数合计 95；阅读只写 4-5 篇，本文件按 5 题估算后计数为 100。仅作背景参考。"
+    }
+  ],
+  "confidence": "high",
+  "note": "主 blueprint 采用 2024 大二上期末真题的题组题号分布；第13题 OCR 不可用，语料统计按 99 题。综合日语1通知不是大二上正式考纲。",
+  "meta": {
+    "semester": "big2_autumn",
+    "source_sha256": "52a28da267be9749015f23d875b0f9de75db5741fa2add8060d2c160000cac4f",
+    "generated_from": [
+      "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md"
+    ],
+    "generated_at": "2026-11-17T13:27:26+08:00",
+    "reviewed": false
+  }
+}

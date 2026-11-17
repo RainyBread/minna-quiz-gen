@@ -1,0 +1,50 @@
+{
+  "batch_meta": {
+    "id": "b2a-selftest-001",
+    "semester": "big2_autumn",
+    "request": "self-test",
+    "type_plan": {"kanji_to_kana": 1},
+    "lessons": [37],
+    "model": "self-test",
+    "rules_version": 1,
+    "ruleset_hash": "self-test",
+    "created_at": "2026-11-17T00:00:00+08:00",
+    "warnings": [],
+    "duration_ms": 0,
+    "expected": 1,
+    "accepted": 1
+  },
+  "questions": [
+    {
+      "schema_version": "1.0",
+      "question_id": "b2a-selftest-001-ktk-001",
+      "batch_id": "b2a-selftest-001",
+      "semester": "big2_autumn",
+      "type": "kanji_to_kana",
+      "lesson": 1,
+      "textbook_lesson": 37,
+      "target": {
+        "surface": "発見します",
+        "written": "発見します",
+        "reading": "はっけんします",
+        "meaning_zh": "发现",
+        "vocab_id": "w37-005",
+        "grammar_id": null
+      },
+      "stem": "次の下線部の読み方として最もよいものを選びなさい。\n発見します。",
+      "options": [
+        {"key": "A", "text": "はっけんします", "role": "correct", "mistake_rule_id": null},
+        {"key": "B", "text": "はつけんします", "role": "distractor", "mistake_rule_id": "small_kana_error", "wrongness_zh": "促音脱落"},
+        {"key": "C", "text": "はっけんしまし", "role": "distractor", "mistake_rule_id": "mora_error", "wrongness_zh": "词尾截断"},
+        {"key": "D", "text": "はっけんしません", "role": "distractor", "mistake_rule_id": "mora_error", "wrongness_zh": "否定形误用"}
+      ],
+      "answer_key": "A",
+      "correct_option_text": "はっけんします",
+      "explanation_zh": "「発見します」读作「はっけんします」。B 促音脱落，C 词尾截断，D 误用否定形。",
+      "translation_zh": "发现",
+      "difficulty": 3,
+      "source_refs": ["vocab:w37-005"],
+      "provenance": {"model": "self-test"}
+    }
+  ]
+}

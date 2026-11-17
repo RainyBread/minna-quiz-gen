@@ -1,0 +1,812 @@
+{
+  "meta": {
+    "semester": "big2_autumn",
+    "version": 2,
+    "reviewed": true,
+    "generated_at": "2026-11-17T20:45:51+08:00",
+    "generator": "deterministic+llm",
+    "corpus_sha256": "ecbfc988512123d0b85c88d441ca239396ba5aceee9726c1a40bb8b3bad5e934",
+    "notes": [
+      "设误库：每个规则必须绑定 checker 或标记为语义规则（由 blind-solve 审计）。",
+      "已审核/锁定规则不会被重新挖掘覆盖；冲突会写入 conflicts。"
+    ],
+    "reviewed_at": "2026-11-17T20:47:18+08:00",
+    "conflicts": []
+  },
+  "rules": [
+    {
+      "id": "similar_word_error",
+      "name_zh": "近义/同前缀/同课词替换",
+      "description": "使用同一语义场、同前缀或同课词汇替换，制造意义混淆。",
+      "applies_to": [
+        "kana_to_kanji",
+        "vocab_choice",
+        "translation_choice"
+      ],
+      "severity": "medium",
+      "checker": null,
+      "confidence": 0.82,
+      "evidence_count": 976,
+      "evidence": [
+        {
+          "source_id": "legacy-w37-004-a",
+          "question_id": "legacy-w37-004-a",
+          "target": "誰か",
+          "correct": "誰か",
+          "distractor": "何語",
+          "note": "同音/同前缀/形近词替换",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-004-a",
+          "question_id": "legacy-w37-004-a",
+          "target": "誰か",
+          "correct": "誰か",
+          "distractor": "皆様",
+          "note": "同音/同前缀/形近词替换",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-004-a",
+          "question_id": "legacy-w37-004-a",
+          "target": "誰か",
+          "correct": "誰か",
+          "distractor": "その後",
+          "note": "同音/同前缀/形近词替换",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-006-a",
+          "question_id": "legacy-w37-006-a",
+          "target": "麦",
+          "correct": "麦",
+          "distractor": "米",
+          "note": "同音/同前缀/形近词替换",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-006-a",
+          "question_id": "legacy-w37-006-a",
+          "target": "麦",
+          "correct": "麦",
+          "distractor": "金",
+          "note": "同音/同前缀/形近词替换",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "mora_error",
+      "name_zh": "拨音/促音/长音或词尾截断",
+      "description": "误加/漏掉「ん」「っ」「ー」，或截断/多写词尾，导致音节结构错误。",
+      "applies_to": [
+        "kanji_to_kana"
+      ],
+      "severity": "high",
+      "checker": "mora_error",
+      "confidence": 0.95,
+      "evidence_count": 398,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-001",
+          "target": "発見します",
+          "correct": "はっけんします",
+          "distractor": "はっけんしまし",
+          "note": "音节/拨音/促音差异",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-001",
+          "target": "発見します",
+          "correct": "はっけんします",
+          "distractor": "はっけんしません",
+          "note": "音节/拨音/促音差异",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-001-b",
+          "question_id": "legacy-w37-001-b",
+          "target": "叱ります",
+          "correct": "しかります",
+          "distractor": "たのみます",
+          "note": "音节/拨音/促音差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-001-b",
+          "question_id": "legacy-w37-001-b",
+          "target": "叱ります",
+          "correct": "しかります",
+          "distractor": "ほめます",
+          "note": "音节/拨音/促音差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-001-b",
+          "question_id": "legacy-w37-001-b",
+          "target": "叱ります",
+          "correct": "しかります",
+          "distractor": "よごします",
+          "note": "音节/拨音/促音差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "kanji_form_error",
+      "name_zh": "形近汉字/汉字组合错误",
+      "description": "用形近字或错误汉字组合替换正确写法（如 准/準、屋頂/屋上）。",
+      "applies_to": [
+        "kana_to_kanji",
+        "vocab_choice"
+      ],
+      "severity": "high",
+      "checker": "kanji_form_error",
+      "confidence": 0.95,
+      "evidence_count": 368,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-002",
+          "target": "発見します",
+          "correct": "発見します",
+          "distractor": "発明します",
+          "note": "形近汉字/汉字组合差异",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-002",
+          "target": "発見します",
+          "correct": "発見します",
+          "distractor": "発言します",
+          "note": "形近汉字/汉字组合差异",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-002",
+          "target": "発見します",
+          "correct": "発見します",
+          "distractor": "発案します",
+          "note": "形近汉字/汉字组合差异",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-001-a",
+          "question_id": "legacy-w37-001-a",
+          "target": "叱ります",
+          "correct": "叱ります",
+          "distractor": "頼みます",
+          "note": "形近汉字/汉字组合差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-001-a",
+          "question_id": "legacy-w37-001-a",
+          "target": "叱ります",
+          "correct": "叱ります",
+          "distractor": "褒めます",
+          "note": "形近汉字/汉字组合差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "situational_error",
+      "name_zh": "会话情景/语域不匹配",
+      "description": "应答在语法上成立，但不符合对话场景、礼貌程度或说话人关系。",
+      "applies_to": [
+        "expression_choice",
+        "grammar_fill"
+      ],
+      "severity": "medium",
+      "checker": null,
+      "confidence": 0.82,
+      "evidence_count": 76,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-004",
+          "target": "できる",
+          "correct": "できる",
+          "distractor": "食べる",
+          "note": "会话应答不匹配",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-004",
+          "target": "できる",
+          "correct": "できる",
+          "distractor": "片付ける",
+          "note": "会话应答不匹配",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-004",
+          "target": "できる",
+          "correct": "できる",
+          "distractor": "取る",
+          "note": "会话应答不匹配",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q046",
+          "question_id": "exam2024-q046",
+          "target": "できる",
+          "correct": "できる",
+          "distractor": "食べる",
+          "note": "会话应答不匹配",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q046",
+          "question_id": "exam2024-q046",
+          "target": "できる",
+          "correct": "できる",
+          "distractor": "片付ける",
+          "note": "会话应答不匹配",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "tense_aspect_error",
+      "name_zh": "时态/体错误",
+      "description": "在需要过去/非过去、完成/持续等时体意义的位置使用错误形式。",
+      "applies_to": [
+        "grammar_fill"
+      ],
+      "severity": "high",
+      "checker": "tense_aspect_error",
+      "confidence": 0.774,
+      "evidence_count": 17,
+      "evidence": [
+        {
+          "source_id": "exam2024-q061",
+          "question_id": "exam2024-q061",
+          "target": "入れないで",
+          "correct": "入れないで",
+          "distractor": "入れなくて",
+          "note": "时态/体差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q061",
+          "question_id": "exam2024-q061",
+          "target": "入れないで",
+          "correct": "入れないで",
+          "distractor": "入って",
+          "note": "时态/体差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q061",
+          "question_id": "exam2024-q061",
+          "target": "入れないで",
+          "correct": "入れないで",
+          "distractor": "入らなくて",
+          "note": "时态/体差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q062",
+          "question_id": "exam2024-q062",
+          "target": "来たんです",
+          "correct": "来たんです",
+          "distractor": "来たです",
+          "note": "时态/体差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q062",
+          "question_id": "exam2024-q062",
+          "target": "来たんです",
+          "correct": "来たんです",
+          "distractor": "来ます",
+          "note": "时态/体差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "particle_error",
+      "name_zh": "助词误用",
+      "description": "替换句中的助词，破坏格关系、时间/场所/方向等语法功能。",
+      "applies_to": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "severity": "high",
+      "checker": "particle_error",
+      "confidence": 0.8,
+      "evidence_count": 15,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-005",
+          "target": "しか",
+          "correct": "しか",
+          "distractor": "だけ",
+          "note": "助词替换",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-005",
+          "target": "しか",
+          "correct": "しか",
+          "distractor": "を",
+          "note": "助词替换",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-005",
+          "target": "しか",
+          "correct": "しか",
+          "distractor": "も",
+          "note": "助词替换",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q047",
+          "question_id": "exam2024-q047",
+          "target": "まで",
+          "correct": "まで",
+          "distractor": "に",
+          "note": "助词替换",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q047",
+          "question_id": "exam2024-q047",
+          "target": "まで",
+          "correct": "まで",
+          "distractor": "を",
+          "note": "助词替换",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "long_vowel_error",
+      "name_zh": "长音缺失/赘加/位置错误",
+      "description": "删除、添加或移动长音（ー、おう、えい等），制造读音长度错误。",
+      "applies_to": [
+        "kanji_to_kana"
+      ],
+      "severity": "high",
+      "checker": "long_vowel_error",
+      "confidence": 0.788,
+      "evidence_count": 14,
+      "evidence": [
+        {
+          "source_id": "legacy-w40-005-b",
+          "question_id": "legacy-w40-005-b",
+          "target": "酔います",
+          "correct": "よいます",
+          "distractor": "あいます",
+          "note": "长音增删/位置差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w40-041-b",
+          "question_id": "legacy-w40-041-b",
+          "target": "合います",
+          "correct": "あいます",
+          "distractor": "よいます",
+          "note": "长音增删/位置差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w41-036-b",
+          "question_id": "legacy-w41-036-b",
+          "target": "上げます",
+          "correct": "あげます",
+          "distractor": "さげます",
+          "note": "长音增删/位置差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w41-037-b",
+          "question_id": "legacy-w41-037-b",
+          "target": "下げます",
+          "correct": "さげます",
+          "distractor": "あげます",
+          "note": "长音增删/位置差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w43-012-b",
+          "question_id": "legacy-w43-012-b",
+          "target": "上がります",
+          "correct": "あがります",
+          "distractor": "さがります",
+          "note": "长音增删/位置差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "collocation_error",
+      "name_zh": "词语搭配错误",
+      "description": "词语本身成立，但与题干中的名词/动词/助词搭配不自然。",
+      "applies_to": [
+        "vocab_choice",
+        "expression_choice"
+      ],
+      "severity": "medium",
+      "checker": null,
+      "confidence": 0.764,
+      "evidence_count": 12,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-003",
+          "target": "相談",
+          "correct": "相談",
+          "distractor": "招待",
+          "note": "同类词但搭配不成立",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-003",
+          "target": "相談",
+          "correct": "相談",
+          "distractor": "参加",
+          "note": "同类词但搭配不成立",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-003",
+          "target": "相談",
+          "correct": "相談",
+          "distractor": "発見",
+          "note": "同类词但搭配不成立",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q043",
+          "question_id": "exam2024-q043",
+          "target": "中",
+          "correct": "中",
+          "distractor": "朝",
+          "note": "同类词但搭配不成立",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q043",
+          "question_id": "exam2024-q043",
+          "target": "中",
+          "correct": "中",
+          "distractor": "時",
+          "note": "同类词但搭配不成立",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "katakana_spelling_error",
+      "name_zh": "片假名表记错误",
+      "description": "外来语片假名中的长音、促音、拨音或音节数错误。",
+      "applies_to": [
+        "kanji_to_kana",
+        "vocab_choice"
+      ],
+      "severity": "high",
+      "checker": "katakana_spelling_error",
+      "confidence": 0.678,
+      "evidence_count": 9,
+      "evidence": [
+        {
+          "source_id": "legacy-w37-017-b",
+          "question_id": "legacy-w37-017-b",
+          "target": "金色",
+          "correct": "きんいろ",
+          "distractor": "キロ",
+          "note": "片假名长音/音节表记差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w37-019-b",
+          "question_id": "legacy-w37-019-b",
+          "target": "金",
+          "correct": "きん",
+          "distractor": "キロ",
+          "note": "片假名长音/音节表记差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w38-032-b",
+          "question_id": "legacy-w38-032-b",
+          "target": "出雲大社",
+          "correct": "いずもたいしゃ",
+          "distractor": "チェンマイ",
+          "note": "片假名长音/音节表记差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w39-037-b",
+          "question_id": "legacy-w39-037-b",
+          "target": "－号室",
+          "correct": "－ごうしつ",
+          "distractor": "フロント",
+          "note": "片假名长音/音节表记差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "legacy-w41-016-b",
+          "question_id": "legacy-w41-016-b",
+          "target": "靴下",
+          "correct": "くつした",
+          "distractor": "ハンカチ",
+          "note": "片假名长音/音节表记差异",
+          "source_family": "legacy_vocab",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "conjugation_error",
+      "name_zh": "活用形错误",
+      "description": "使用同一词干的其他活用形（ます形/て形/た形/假定形等）替换正确形式。",
+      "applies_to": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "severity": "high",
+      "checker": "conjugation_error",
+      "confidence": 0.606,
+      "evidence_count": 3,
+      "evidence": [
+        {
+          "source_id": "exam2024-q068",
+          "question_id": "exam2024-q068",
+          "target": "買うなら",
+          "correct": "買うなら",
+          "distractor": "買うと",
+          "note": "活用形差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q068",
+          "question_id": "exam2024-q068",
+          "target": "買うなら",
+          "correct": "買うなら",
+          "distractor": "買えば",
+          "note": "活用形差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        },
+        {
+          "source_id": "exam2024-q075",
+          "question_id": "exam2024-q075",
+          "target": "掛けながら",
+          "correct": "掛けながら",
+          "distractor": "掛けると",
+          "note": "活用形差异",
+          "source_family": "2024_exam",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "small_kana_error",
+      "name_zh": "促音/拗音等小写假名错误",
+      "description": "把「っ」「ゃ」「ゅ」「ょ」等小写假名写成大写，或反向误写。",
+      "applies_to": [
+        "kanji_to_kana"
+      ],
+      "severity": "high",
+      "checker": "small_kana_error",
+      "confidence": 0.582,
+      "evidence_count": 1,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "mock-b2a-001",
+          "target": "発見します",
+          "correct": "はっけんします",
+          "distractor": "はつけんします",
+          "note": "促音/拗音小写假名差异",
+          "source_family": "mock",
+          "ocr_quality": "clean"
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "homophone_kanji_error",
+      "name_zh": "同音汉字误选",
+      "description": "干扰项为与正确词同音或近音但意义不同的汉字词，需据语义排除。",
+      "applies_to": [
+        "kana_to_kanji"
+      ],
+      "severity": "medium",
+      "checker": "homophone_kanji_error",
+      "confidence": 0.75,
+      "evidence_count": 1,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "legacy-w37-004-a",
+          "target": "",
+          "correct": "誰か",
+          "distractor": "何語",
+          "note": "假名だれか与なにご不同音，但同属疑问类汉字词，需据读音与语义排除。",
+          "source_family": "llm",
+          "ocr_quality": ""
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "voice_error",
+      "name_zh": "自他动词/语态错误",
+      "description": "干扰项混淆自动词与他动词或主动/可能语态，如「音が聞こえる」误用他动词「聞き」。",
+      "applies_to": [
+        "expression_choice",
+        "grammar_fill"
+      ],
+      "severity": "medium",
+      "checker": "voice_error",
+      "confidence": 0.8,
+      "evidence_count": 1,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "exam2024-q050",
+          "target": "",
+          "correct": "聞こえ",
+          "distractor": "聞き",
+          "note": "「音が聞き」需意志性主语，自然传入须用自动词「聞こえる」，自他混淆。",
+          "source_family": "llm",
+          "ocr_quality": ""
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "counter_affix_error",
+      "name_zh": "量词/接尾词错误",
+      "description": "干扰项为与名词搭配不当的量词或接尾词，如「募集＋中」不能换成「朝/時/間」。",
+      "applies_to": [
+        "vocab_choice"
+      ],
+      "severity": "low",
+      "checker": "counter_affix_error",
+      "confidence": 0.7,
+      "evidence_count": 1,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "exam2024-q043",
+          "target": "",
+          "correct": "中",
+          "distractor": "間",
+          "note": "「募集中」为固定接尾表达，「募集間」不成立，接尾词错误。",
+          "source_family": "llm",
+          "ocr_quality": ""
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    },
+    {
+      "id": "dakuten_error",
+      "name_zh": "浊音/半浊音错误",
+      "description": "干扰项在清音与浊音、半浊音之间误写，导致读音错误。",
+      "applies_to": [
+        "kanji_to_kana"
+      ],
+      "severity": "low",
+      "checker": "dakuten_error",
+      "confidence": 0.6,
+      "evidence_count": 1,
+      "evidence": [
+        {
+          "source_id": "",
+          "question_id": "legacy-w37-002-b",
+          "target": "",
+          "correct": "ふみます",
+          "distractor": "たのみます",
+          "note": "清浊音与音节均不同，属读音层面的浊音/音节类干扰。",
+          "source_family": "llm",
+          "ocr_quality": ""
+        }
+      ],
+      "locked": false,
+      "status": "approved",
+      "version": 1
+    }
+  ]
+}

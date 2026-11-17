@@ -1,0 +1,2541 @@
+{
+  "meta": {
+    "semester": "big2_autumn",
+    "source_sha256": "26eb8ab490b2eee856e6b434e2aed972d50db894d39d8e40486e8fa11192a688",
+    "generated_from": [
+      "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+      "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md"
+    ],
+    "generated_at": "2026-11-17T13:27:26+08:00",
+    "approved_points": 52,
+    "draft_points": 20,
+    "notes": [
+      "21 道 jp-3 干净单选题作为已审核语法参考（解析为 AI 生成，建议人工复核）。",
+      "2024 语法填空作为 draft，需人工审核后才用于生成；不伪造课次。",
+      "37-50 课语法课次未标注，生成时允许跨课检索并标注 warning。"
+    ],
+    "updated_at": "2026-11-17T18:37:08+08:00",
+    "forms_updated_at": "2026-11-17T20:34:55+08:00",
+    "approved_with_forms": 72
+  },
+  "points": [
+    {
+      "gp_id": "g-jp3-q001",
+      "lesson": null,
+      "pattern_ja": "～てある",
+      "meaning_zh": "会议资料摆放在桌子上。",
+      "formation": "",
+      "examples": [
+        "会議の資料は机の上に( )あります。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q001",
+          "answer_key": "A",
+          "answer_text": "並べて"
+        }
+      ],
+      "approved_answer_forms": [
+        "並べて"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q002",
+      "lesson": null,
+      "pattern_ja": "～たそうな",
+      "meaning_zh": "妹妹一副想吃蛋糕的表情（～たそうな＝看起来想吃/想做，不是过去时）。",
+      "formation": "",
+      "examples": [
+        "妹はケーキを（　）そうな顔をしています。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q002",
+          "answer_key": "D",
+          "answer_text": "食べた"
+        }
+      ],
+      "approved_answer_forms": [
+        "食べた"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true,
+      "notes": "～たそうな：看起来想吃/想做某事的表情；不是“已经吃过”。"
+    },
+    {
+      "gp_id": "g-jp3-q003",
+      "lesson": null,
+      "pattern_ja": "～ように（可能形）",
+      "meaning_zh": "为了将来能拥有自己的店，正在存钱。",
+      "formation": "",
+      "examples": [
+        "将来自分の店が( )ように、貯金しています。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q003",
+          "answer_key": "B",
+          "answer_text": "持てる"
+        }
+      ],
+      "approved_answer_forms": [
+        "持てる"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q004",
+      "lesson": null,
+      "pattern_ja": "ために／ように",
+      "meaning_zh": "「ために」表目的，前接意志性动词「研究する」；「ように」表目的时多接非意志性动词或可能形，故不选。",
+      "formation": "",
+      "examples": [
+        "日本へ来た目的は何ですか。\n・・医学を研究する( )来ました。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q004",
+          "answer_key": "A",
+          "answer_text": "ために"
+        }
+      ],
+      "approved_answer_forms": [
+        "ために"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q005",
+      "lesson": null,
+      "pattern_ja": "か／かどうか",
+      "meaning_zh": "「どこで」与「か」搭配，表示“在哪里做”；「するかどうか」表示“做还是不做”，与「どこで」不搭配。故选B。",
+      "formation": "",
+      "examples": [
+        "一何を話しているんですか。\nどこで忘年会を（　　）、相談しているんです。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q005",
+          "answer_key": "B",
+          "answer_text": "するか"
+        }
+      ],
+      "approved_answer_forms": [
+        "するか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q006",
+      "lesson": null,
+      "pattern_ja": "のに",
+      "meaning_zh": "( )、樱花正在盛开。",
+      "formation": "",
+      "examples": [
+        "( )、桜が咲いています。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q006",
+          "answer_key": "B",
+          "answer_text": "冬なのに"
+        }
+      ],
+      "approved_answer_forms": [
+        "冬なのに"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q007",
+      "lesson": null,
+      "pattern_ja": "から／ので",
+      "meaning_zh": "（ ），请不要碰。",
+      "formation": "",
+      "examples": [
+        "（ ）、触らないでください。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q007",
+          "answer_key": "A",
+          "answer_text": "熱いですから"
+        }
+      ],
+      "approved_answer_forms": [
+        "熱いですから"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q008",
+      "lesson": null,
+      "pattern_ja": "可能形",
+      "meaning_zh": "能读懂报纸上的汉字了吗？—— 不，还读不了。",
+      "formation": "",
+      "examples": [
+        "新聞の漢字が読めるようになりましたか。\nいいえ、まだ（　　）"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q008",
+          "answer_key": "B",
+          "answer_text": "読めません"
+        }
+      ],
+      "approved_answer_forms": [
+        "読めません"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q009",
+      "lesson": null,
+      "pattern_ja": "～ように（可能形）",
+      "meaning_zh": "「～ように」前接可能形时表示“为了能够……”。句意为“为了能参加比赛而练习”，所以选 A「出られる」。",
+      "formation": "",
+      "examples": [
+        "毎日遅くまで頑張っていますね。\nええ、試合に（　）ように、練習しています。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q009",
+          "answer_key": "A",
+          "answer_text": "出られる"
+        }
+      ],
+      "approved_answer_forms": [
+        "出られる"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q010",
+      "lesson": null,
+      "pattern_ja": "なる／する",
+      "meaning_zh": "一到夏天，夜晚就变短。",
+      "formation": "",
+      "examples": [
+        "夏になると、夜が短く()。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q010",
+          "answer_key": "B",
+          "answer_text": "なります"
+        }
+      ],
+      "approved_answer_forms": [
+        "なります"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q011",
+      "lesson": null,
+      "pattern_ja": "～てもらう",
+      "meaning_zh": "因为忘了带字典，所以朋友借给了我。",
+      "formation": "",
+      "examples": [
+        "辞書を忘れたので、友達に貸して（　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q011",
+          "answer_key": "B",
+          "answer_text": "もらった"
+        }
+      ],
+      "approved_answer_forms": [
+        "もらった"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q012",
+      "lesson": null,
+      "pattern_ja": "から／ので",
+      "meaning_zh": "已经没有时间了，快点走吧。",
+      "formation": "",
+      "examples": [
+        "もう時間がない（　　）、早く行こうよ。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q012",
+          "answer_key": "B",
+          "answer_text": "から"
+        }
+      ],
+      "approved_answer_forms": [
+        "から"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q013",
+      "lesson": null,
+      "pattern_ja": "～になる",
+      "meaning_zh": "虽然只是一周的研修，但真的成了一次很好的经历。",
+      "formation": "",
+      "examples": [
+        "1週間の研修でしたが、本当にいい経験に（　　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q013",
+          "answer_key": "B",
+          "answer_text": "なりました"
+        }
+      ],
+      "approved_answer_forms": [
+        "なりました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q014",
+      "lesson": null,
+      "pattern_ja": "～かどうか",
+      "meaning_zh": "请确认一下行李是否已经到了。",
+      "formation": "",
+      "examples": [
+        "荷物が（　　）どうか確かめてください。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q014",
+          "answer_key": "D",
+          "answer_text": "ついたか"
+        }
+      ],
+      "approved_answer_forms": [
+        "ついたか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q015",
+      "lesson": null,
+      "pattern_ja": "なくす／なくなる",
+      "meaning_zh": "把重要的文件弄丢了。",
+      "formation": "",
+      "examples": [
+        "大切な書類を( )しまいました。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q015",
+          "answer_key": "A",
+          "answer_text": "なくして"
+        }
+      ],
+      "approved_answer_forms": [
+        "なくして"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q016",
+      "lesson": null,
+      "pattern_ja": "ので",
+      "meaning_zh": "——那个，我身体不舒服，可以回去吗？ ——可以。保重。",
+      "formation": "",
+      "examples": [
+        "一あのう、気分が（　　）、帰ってもいいですか。\n一いいですよ。お大事に。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q016",
+          "answer_key": "A",
+          "answer_text": "悪いので"
+        }
+      ],
+      "approved_answer_forms": [
+        "悪いので"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q017",
+      "lesson": null,
+      "pattern_ja": "～てくれる",
+      "meaning_zh": "我唱了野田先生教给我的歌。",
+      "formation": "",
+      "examples": [
+        "私は野田さんが教えて（　　）歌を歌いました。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q017",
+          "answer_key": "D",
+          "answer_text": "くれた"
+        }
+      ],
+      "approved_answer_forms": [
+        "くれた"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q018",
+      "lesson": null,
+      "pattern_ja": "の／こと",
+      "meaning_zh": "——前天铃木先生发来邮件了吗？ ——不，收到邮件是上周。",
+      "formation": "",
+      "examples": [
+        "一昨日鈴木さんからメールが来たんですか。\nいいえ。メールをもらった（　）は先週です。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q018",
+          "answer_key": "A",
+          "answer_text": "の"
+        }
+      ],
+      "approved_answer_forms": [
+        "の"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q019",
+      "lesson": null,
+      "pattern_ja": "～てもらう／ていただく",
+      "meaning_zh": "祖母教给我用授受句「～てもらう」；「いただく」是自谦语，多用于正式或需特别尊敬的场合，此处一般叙述用「もらいました」更自然。",
+      "formation": "",
+      "examples": [
+        "祖母に昔の歌を教えて( )。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q019",
+          "answer_key": "A",
+          "answer_text": "もらいました"
+        }
+      ],
+      "approved_answer_forms": [
+        "もらいました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q020",
+      "lesson": null,
+      "pattern_ja": "～そうだ（様態）",
+      "meaning_zh": "袋子的绳子眼看就要断了。",
+      "formation": "",
+      "examples": [
+        "袋のひもが( )そうです。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q020",
+          "answer_key": "B",
+          "answer_text": "切れ"
+        }
+      ],
+      "approved_answer_forms": [
+        "切れ"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-jp3-q021",
+      "lesson": null,
+      "pattern_ja": "～ように",
+      "meaning_zh": "请注意不要将伞忘在电车上。",
+      "formation": "",
+      "examples": [
+        "電車に傘を忘れない（　）、気を付けてください。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/public/jp-3-question-bank.json",
+          "question_id": "jp-3-q021",
+          "answer_key": "D",
+          "answer_text": "ように"
+        }
+      ],
+      "approved_answer_forms": [
+        "ように"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true
+    },
+    {
+      "gp_id": "g-exam2024-q056",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "熱があったんですが、学校を1日（　）休みませんでした。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q056",
+          "answer_key": "A",
+          "answer_text": "しか"
+        }
+      ],
+      "approved_answer_forms": [
+        "しか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q058",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "わたしがしたとおりにしてください。\n……はい。（　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q058",
+          "answer_key": "B",
+          "answer_text": "これでいいですか"
+        }
+      ],
+      "approved_answer_forms": [
+        "これでいいですか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q059",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "黒板に「休講」（　）書いてあるね。\n……やった（太好了）。遊びに行こう。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q059",
+          "answer_key": "B",
+          "answer_text": "と"
+        }
+      ],
+      "approved_answer_forms": [
+        "と"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q060",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "すみませんが、李さんに明日の会議は午後2時からだと伝えて（　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q060",
+          "answer_key": "D",
+          "answer_text": "いただけませんか"
+        }
+      ],
+      "approved_answer_forms": [
+        "いただけませんか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q061",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "ダイエットをしているので、コーヒーには砂糖を（　）飲みます。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q061",
+          "answer_key": "B",
+          "answer_text": "入れないで"
+        }
+      ],
+      "approved_answer_forms": [
+        "入れないで"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q062",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "お酒はいかがですか。\n……すみません。きょうは車で（　）から、ジュースでいいです。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q062",
+          "answer_key": "D",
+          "answer_text": "来たんです"
+        }
+      ],
+      "approved_answer_forms": [
+        "来たんです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q063",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "プールに行くようになってから、前より速く（　）し、風邪もひかなくなった。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q063",
+          "answer_key": "A",
+          "answer_text": "泳げるようになった"
+        }
+      ],
+      "approved_answer_forms": [
+        "泳げるようになった"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q065",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "先生：危ないですから、その上には荷物を絶対に置かない（　）。\n学生：はい、わかりました。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q065",
+          "answer_key": "B",
+          "answer_text": "ようにしてください"
+        }
+      ],
+      "approved_answer_forms": [
+        "ようにしてください"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q068",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "服を買いたいんですが、どこがいいですか。\n……服を（　）「UNIQLO」がいいですよ。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q068",
+          "answer_key": "D",
+          "answer_text": "買うなら"
+        }
+      ],
+      "approved_answer_forms": [
+        "買うなら"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q069",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "今日は雨ですから、傘を（　）出かけます。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q069",
+          "answer_key": "A",
+          "answer_text": "持って"
+        }
+      ],
+      "approved_answer_forms": [
+        "持って"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q070",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "李さんが（　）会議を始めましょう。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q070",
+          "answer_key": "D",
+          "answer_text": "来たら"
+        }
+      ],
+      "approved_answer_forms": [
+        "来たら"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q072",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "課長：3時からの会議の資料は？\n部下：これです。昼休みに人数分コピーして（　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q072",
+          "answer_key": "C",
+          "answer_text": "おきました"
+        }
+      ],
+      "approved_answer_forms": [
+        "おきました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q073",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "昨日、ラッシュのバスの中で隣の人に（　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q073",
+          "answer_key": "B",
+          "answer_text": "足を踏まれました"
+        }
+      ],
+      "approved_answer_forms": [
+        "足を踏まれました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q074",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "あれ、このコップ汚れているね。\n……あ、ほんとうだ。店の人に（　）よ。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q074",
+          "answer_key": "C",
+          "answer_text": "取り替えてもらったほうがいい"
+        }
+      ],
+      "approved_answer_forms": [
+        "取り替えてもらったほうがいい"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q075",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "電話を（　）車を運転しないでください。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q075",
+          "answer_key": "B",
+          "answer_text": "掛けながら"
+        }
+      ],
+      "approved_answer_forms": [
+        "掛けながら"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q076",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "金さんの電話番号、変わってないんですよね。何回掛けても、なかなか（　）んですよ。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q076",
+          "answer_key": "C",
+          "answer_text": "掛からない"
+        }
+      ],
+      "approved_answer_forms": [
+        "掛からない"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q077",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "田中：お子さんの火傷の具合はどうですか。\n渡辺：なかなかよくならないんです。\n田中：（　）。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q077",
+          "answer_key": "B",
+          "answer_text": "それはいけませんね"
+        }
+      ],
+      "approved_answer_forms": [
+        "それはいけませんね"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q078",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "好きじゃなかったら、（　）よ。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q078",
+          "answer_key": "D",
+          "answer_text": "食べなくてもいい"
+        }
+      ],
+      "approved_answer_forms": [
+        "食べなくてもいい"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q079",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "今日図書館へ（　）閉館の日でした。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q079",
+          "answer_key": "A",
+          "answer_text": "行ったら"
+        }
+      ],
+      "approved_answer_forms": [
+        "行ったら"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "g-exam2024-q080",
+      "lesson": null,
+      "pattern_ja": "",
+      "meaning_zh": "",
+      "formation": "",
+      "examples": [
+        "忘れ物（　）気が付かなかった。"
+      ],
+      "source_refs": [
+        {
+          "file": "dlut-nihongo-quiz/data/raw/japanese/2024年日语期末试卷.md",
+          "question_id": "exam2024-q080",
+          "answer_key": "C",
+          "answer_text": "に"
+        }
+      ],
+      "approved_answer_forms": [
+        "に"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "low",
+      "status": "draft",
+      "reviewed": false
+    },
+    {
+      "gp_id": "ocrg44-001",
+      "lesson": 44,
+      "pattern_ja": "動詞ます形の語幹＋すぎます／い形容詞・な形容詞＋すぎます",
+      "meaning_zh": "过于……；……得过头",
+      "formation": "動詞ます形去掉「ます」＋すぎます；い形容詞去掉「い」＋すぎます；な形容詞語幹＋すぎます",
+      "examples": [
+        "ゆうべ お酒を 飲みすぎました。",
+        "笑いすぎて、涙が 出たんです。",
+        "簡単すぎて、運転が おもしろくないです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 173,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "飲みすぎました",
+        "笑いすぎて",
+        "簡単すぎて"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg44-002",
+      "lesson": 44,
+      "pattern_ja": "動詞ます形の語幹＋やすい／にくいです",
+      "meaning_zh": "容易……／难以……",
+      "formation": "動詞ます形去掉「ます」＋やすい／にくい",
+      "examples": [
+        "この パソコンは 使いやすいです。",
+        "田舎の ほうが 住みやすいと 思います。",
+        "この コップは 丈夫で 割れにくいですよ。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 173,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "使いやすいです",
+        "割れにくいです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg44-003",
+      "lesson": 44,
+      "pattern_ja": "い形容詞（い→く）＋します／して ください",
+      "meaning_zh": "把……变得……；请把……弄成……",
+      "formation": "い形容詞の語尾「い」を「く」にして＋します／して ください",
+      "examples": [
+        "ズボンを 短く して ください。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 173,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "短くして",
+        "短くしてください"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg44-004",
+      "lesson": 44,
+      "pattern_ja": "な形容詞／名詞＋に します",
+      "meaning_zh": "使……变得……；决定为……／选为……",
+      "formation": "な形容詞語幹／名詞＋に＋します",
+      "examples": [
+        "もう 夜 遅いですから、静かに して いただけませんか。",
+        "今晩の おかずは 何に しましょうか。",
+        "きのうは 肉を 食べたから、きょうは 魚料理に しょうよ。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 173,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "静かにして",
+        "何にしましょうか",
+        "魚料理にしょうよ"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg44-005",
+      "lesson": 44,
+      "pattern_ja": "い形容詞（い→く）／な形容詞＋に＋動詞",
+      "meaning_zh": "以……方式做……；……地",
+      "formation": "い形容詞の語尾「い」を「く」にして＋動詞；な形容詞語幹＋に＋動詞",
+      "examples": [
+        "今夜は 楽しく 踊りましょう。",
+        "野菜は 細かく 切って、卵と 混ぜます。",
+        "電気や 水は 大切に 使いましょう。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 173,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "楽しく踊りましょう",
+        "細かく切って",
+        "大切に使いましょう"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg45-001",
+      "lesson": 45,
+      "pattern_ja": "～場合は、～",
+      "meaning_zh": "在……的情况下；如果……的话（表示假定条件，后接应对措施、指示等）",
+      "formation": "动词普通形／い形容词普通形／な形容词＋な／名词＋の ＋ 場合（は）",
+      "examples": [
+        "カードをなくした場合は、すぐカード会社に連絡してください。",
+        "まちがい電話をかけた場合は、何と言って謝ったらいいですか。…「すみません。番号をまちがえました。」と言えばいいです。",
+        "調子が悪い場合は、この番号に連絡してください。",
+        "必要な場合は係に言ってください。",
+        "火事や地震の場合は、絶対にエレベーターを使わないでください。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 181,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "場合は",
+        "なくした場合は",
+        "調子が悪い場合は"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg45-002",
+      "lesson": 45,
+      "pattern_ja": "～のに、～",
+      "meaning_zh": "明明……却……；虽然……但是……（表示与预期相反、带有不满或遗憾的语气）",
+      "formation": "动词普通形／い形容词普通形／な形容词＋な／名词＋な ＋ のに",
+      "examples": [
+        "約束をしたのに、彼女は来ませんでした。",
+        "一生懸命練習して覚えたのに、途中で忘れてしまいました。",
+        "箸なのに、ゴルフですか。…ええ。下手だけど、好きなんです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 181,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "のに"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg46-001",
+      "lesson": 46,
+      "pattern_ja": "動詞辞書形＋ところです",
+      "meaning_zh": "正要……；即将……",
+      "formation": "動詞辞書形＋ところだ／です",
+      "examples": [
+        "会議は今から始まるところです。",
+        "今から出かけるところなんです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 191,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "始まるところです",
+        "出かけるところなんです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg46-002",
+      "lesson": 46,
+      "pattern_ja": "動詞ている形＋ところです",
+      "meaning_zh": "正在……",
+      "formation": "動詞て形＋いる＋ところだ／です",
+      "examples": [
+        "今調べているところです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 191,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "調べているところです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg46-003",
+      "lesson": 46,
+      "pattern_ja": "動詞た形＋ところです",
+      "meaning_zh": "刚刚……",
+      "formation": "動詞た形＋ところだ／です",
+      "examples": [
+        "あ、たった今帰ったところです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 191,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "帰ったところです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg46-004",
+      "lesson": 46,
+      "pattern_ja": "動詞た形＋ばかりです",
+      "meaning_zh": "刚刚……（强调刚完成、时间间隔短）",
+      "formation": "動詞た形＋ばかりだ／です",
+      "examples": [
+        "彼は3月に大学を卒業したばかりです。",
+        "先月会社に入ったばかりですから、まだよくわかりません。",
+        "このビデオカメラ、先週買ったばかりなのに、もう動かないんです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 191,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "卒業したばかりです",
+        "入ったばかりです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg46-005",
+      "lesson": 46,
+      "pattern_ja": "動詞辞書形＋はずです",
+      "meaning_zh": "应该……；理应……",
+      "formation": "動詞辞書形＋はずだ／です",
+      "examples": [
+        "書類は速達で出しましたから、あした着くはずです。",
+        "今注射をしましたから、3時間後には下がるはずです。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 191,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "着くはずです",
+        "下がるはずです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg47-001",
+      "lesson": 47,
+      "pattern_ja": "～によると、～そうです",
+      "meaning_zh": "据……说，听说……（表示传闻，信息来源）",
+      "formation": "名词＋によると、普通体＋そうです（传闻）；「そうです」前接动词、い形容词、な形容词、名词的普通形（な形容词和名词去掉だ）",
+      "examples": [
+        "天気予報によると、あしたは寒くなるそうです。",
+        "新聞で読んだんですが、1月に日本語のスピーチ大会があるそうですよ。",
+        "クララさんは 子どもの とき、フランスに 住んで いたそうです。",
+        "この間 インドネシアの バリ島へ 遊びに 行って 来ました。…とても きれいな 所だそうですね。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 199,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "そうです",
+        "寒くなるそうです",
+        "あるそうです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg47-002",
+      "lesson": 47,
+      "pattern_ja": "～ようです",
+      "meaning_zh": "好像……、似乎……（表示根据所见所闻做出的推测、判断）",
+      "formation": "动词普通形／い形容词普通形／な形容词词干＋な／名词＋の ＋ ようです",
+      "examples": [
+        "隣の部屋に だれか いる ようです。",
+        "パーティーでも して いる ようですね。",
+        "事後の ようですね。パトカーと 救急車が 来て いますよ。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 199,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "ようです",
+        "いるようです"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg48-001",
+      "lesson": 48,
+      "pattern_ja": "（人）を ～させます（自动词・移动类动词的使役）",
+      "meaning_zh": "让/使某人做某事（使役形，用于自动词或表示移动、变化的动词）",
+      "formation": "动词使役形：五段动词把词尾变成「あ段」＋せる（行く→行かせる、遊ぶ→遊ばせる、止める→止めさせる）；一段动词去掉る＋させる；する→させる；来る→来させる",
+      "examples": [
+        "息子を イギリスへ 留学させます。",
+        "係の 者が 迎えに 行かせますから。",
+        "体に いいし、友達も できるし、できるだけ 外で 遊ばせて います。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 207,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "留学させます",
+        "行かせます",
+        "遊ばせています"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg48-002",
+      "lesson": 48,
+      "pattern_ja": "（人）に ～を ～させます（他动词的使役）",
+      "meaning_zh": "让/使某人做某事（使役形，用于他动词，动作对象用「に」表示）",
+      "formation": "「人に＋物を＋动词使役形」；如 習う→習わせる、使う→使わせる、言う→言わせる",
+      "examples": [
+        "娘に ピアノを 習わせます。",
+        "学生に 絶対に 日本語を 使わせませんから。",
+        "でも、言いたい ことは 自由に 言わせます。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 207,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "習わせます",
+        "使わせません",
+        "言わせます"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg48-003",
+      "lesson": 48,
+      "pattern_ja": "～させて いただけませんか",
+      "meaning_zh": "能让我做～吗？（礼貌地请求对方允许自己做某事）",
+      "formation": "动词使役形て形＋いただけませんか",
+      "examples": [
+        "しばらく ここに 車を 止めさせて いただけませんか。 荷物を 降ろしますので。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 207,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "止めさせていただけませんか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg49-001",
+      "lesson": 49,
+      "pattern_ja": "V(ら)れる（尊敬語）",
+      "meaning_zh": "用动词被动形式表示尊敬，用于长辈、上级或第三者",
+      "formation": "五段动词：ない形＋れる（帰る→帰られる）；一段动词：ない形＋られる；する→される；来る→来られる",
+      "examples": [
+        "課長は もう 帰られました。",
+        "この 本は 読まれましたか。",
+        "…ええ、もう 読みました。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 215,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "帰られました",
+        "読まれました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg49-002",
+      "lesson": 49,
+      "pattern_ja": "お＋Vます形＋になる／ご＋サ変語幹＋になる",
+      "meaning_zh": "尊敬语，表示对对方或第三者的尊敬",
+      "formation": "お＋动词ます形（去ます）＋になる；サ変动词用 ご＋汉字词干＋になる（如 ご覧になる）",
+      "examples": [
+        "社長は もう お帰りに なりました。",
+        "すみません。その 灰皿、お使いに なりますか。",
+        "よく 映画を ご覧に なりますか。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 215,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "お使いになります",
+        "ご覧になります"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg49-003",
+      "lesson": 49,
+      "pattern_ja": "お＋Vます形＋ください／ご＋サ変語幹＋ください",
+      "meaning_zh": "尊敬语请求，请对方做某事",
+      "formation": "お＋动词ます形（去ます）＋ください；サ変用 ご＋词干＋ください",
+      "examples": [
+        "しばらく お待ち ください。",
+        "どうぞ お入り ください。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 215,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "お待ちください",
+        "お入りください"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg49-004",
+      "lesson": 49,
+      "pattern_ja": "特別な尊敬語（なさる・召し上がる・おっしゃる・いらっしゃる・ご存じです）",
+      "meaning_zh": "特殊尊敬动词，用专门词替换普通动词表示尊敬",
+      "formation": "する→なさる；食べる/飲む→召し上がる；言う→おっしゃる；いる/行く/来る→いらっしゃる；知っている→ご存じです",
+      "examples": [
+        "部長は アメリカへ 出張なさいます。",
+        "飲み物は 何を 召し上がりますか。",
+        "遠慮なく おっしゃって ください。",
+        "松本部長は いらっしゃいますか。",
+        "小川さんの 息子さんが さくら大学に 合格したのを ご存じですか。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 215,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "なさいます",
+        "召し上がります",
+        "おっしゃってください",
+        "いらっしゃいます",
+        "ご存じですか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-001",
+      "lesson": 50,
+      "pattern_ja": "お＋V(ます形)＋します／ご＋N＋します",
+      "meaning_zh": "谦让语。表示自己（为对方）做某事，用于对长辈、上级或客人说话时",
+      "formation": "お＋和语动词ます形（去掉ます）＋します；ご＋汉语名词＋します。例：お送りします、お持ちします、ご案内します",
+      "examples": [
+        "今月のスケジュールをお送りします。",
+        "重そうですね。お持ちしましょうか。",
+        "江戸東京博物館へご案内します。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "お送りします",
+        "お持ちしましょうか",
+        "ご案内します"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-002",
+      "lesson": 50,
+      "pattern_ja": "参ります",
+      "meaning_zh": "是「行きます・来ます」的谦让语；表示「我去／我来」",
+      "formation": "参る（谦让语动词，ます形：参ります）",
+      "examples": [
+        "私はアメリカから参りました。",
+        "はい、私が参ります。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "参ります",
+        "参りました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-003",
+      "lesson": 50,
+      "pattern_ja": "お＋V(ます形)＋いたします",
+      "meaning_zh": "是「お～します」更郑重的谦让表达（自谦程度更高）",
+      "formation": "お＋动词ます形（去掉ます）＋いたします。例：お願いいたします",
+      "examples": [
+        "どうぞよろしくお願いいたします。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "お願いいたします"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-004",
+      "lesson": 50,
+      "pattern_ja": "拝見します",
+      "meaning_zh": "是「見ます」的谦让语；表示「我（恭敬地）看／拜读」",
+      "formation": "拝見する（ます形：拝見します）",
+      "examples": [
+        "ちょっと切符を拝見します。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "拝見します"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-005",
+      "lesson": 50,
+      "pattern_ja": "伺います",
+      "meaning_zh": "是「聞きます・訪ねます」的谦让语；表示「我（恭敬地）问／听说／拜访」",
+      "formation": "伺う（ます形：伺います）",
+      "examples": [
+        "はい、部長から伺いました。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "伺いました"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-006",
+      "lesson": 50,
+      "pattern_ja": "申します",
+      "meaning_zh": "是「言います」的谦让语；用于自报姓名或谦逊地说话",
+      "formation": "申す（ます形：申します）",
+      "examples": [
+        "初めまして。ミラーと申します。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "申します",
+        "と申します"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-007",
+      "lesson": 50,
+      "pattern_ja": "ご存じですか",
+      "meaning_zh": "是「知っていますか」的尊敬语；表示「您知道…吗」",
+      "formation": "ご存じです（尊敬语）＋か",
+      "examples": [
+        "ミラーさんがスピーチコンテストで優勝したのをご存じですか。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "ご存じですか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-008",
+      "lesson": 50,
+      "pattern_ja": "おります",
+      "meaning_zh": "是「います」的谦让语；表示「我（谦逊地）在／待」",
+      "formation": "おる（ます形：おります）",
+      "examples": [
+        "ニューヨークにおります。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "おります"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-009",
+      "lesson": 50,
+      "pattern_ja": "いらっしゃいますか",
+      "meaning_zh": "是「います・行きます・来ます」的尊敬语；表示「您在／您去／您来」",
+      "formation": "いらっしゃる（ます形：いらっしゃいます）",
+      "examples": [
+        "ご家族はどちらにいらっしゃいますか。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "いらっしゃいますか"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "high",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    },
+    {
+      "gp_id": "ocrg50-010",
+      "lesson": 50,
+      "pattern_ja": "ございます",
+      "meaning_zh": "是「あります」的郑重语（丁寧語）；表示「有／在」",
+      "formation": "ある（郑重语：ございます）",
+      "examples": [
+        "はい、あちらの階段の横にございます。"
+      ],
+      "source_refs": [
+        {
+          "file": "大家的日语2-外研社.pdf",
+          "page": 223,
+          "kind": "pdf_vision"
+        }
+      ],
+      "approved_answer_forms": [
+        "ございます"
+      ],
+      "allowed_distractor_rule_ids": [
+        "particle_error",
+        "conjugation_error",
+        "tense_aspect_error",
+        "voice_error",
+        "collocation_error",
+        "situational_error"
+      ],
+      "confidence": "medium",
+      "status": "approved",
+      "reviewed": true,
+      "form_tags": [
+        "grammar_fill",
+        "expression_choice"
+      ],
+      "forms_source": "llm_extracted_reviewed",
+      "forms_reviewed_at": "2026-11-17T20:34:55+08:00"
+    }
+  ]
+}

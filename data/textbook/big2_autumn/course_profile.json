@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "semester": "big2_autumn",
+    "generated_at": "2026-11-17T19:27:20+08:00",
+    "sources": [
+      {
+        "label": "course_description",
+        "sha256": "b4fcabe9fb119c975a7d8eebb2edeb84eb90b8f6675731d61f3eaadcd514f52e"
+      },
+      {
+        "label": "exam_notice",
+        "sha256": "12c68311e2fbdee0fc2e1ea5a943264794a6460b9f733964a1f111baa3a0ebc0"
+      }
+    ],
+    "notes": [
+      "Derived structurally from local course documents; original files are not committed.",
+      "Lesson numbers are textbook absolute 37-50; course lesson = textbook - 36."
+    ]
+  },
+  "course": {
+    "name": "综合日语3",
+    "textbook": "大家的日本语 初级2",
+    "workbook": "大家的日语标准习题集 初级2",
+    "textbook_lessons": [
+      37,
+      50
+    ],
+    "course_lessons": [
+      1,
+      14
+    ],
+    "hours_per_lesson": 4,
+    "weeks": 12,
+    "total_hours": 72,
+    "credits": 4.5,
+    "midterm_week": 7,
+    "final_week": 14,
+    "grade": {
+      "usual_and_midterm": 0.3,
+      "final_exam": 0.7,
+      "flex": 0.05
+    },
+    "exam_format": "期末为单选题（以教务通知为准）"
+  },
+  "blueprints": {
+    "primary_2024": {
+      "source": "2024 大二上期末真题",
+      "total_questions": 100,
+      "missing": [
+        "q13（OCR不可用）"
+      ],
+      "counts": {
+        "kanji_to_kana": 30,
+        "kana_to_kanji": 10,
+        "vocab_choice": 5,
+        "expression_choice": 10,
+        "grammar_fill": 25,
+        "sentence_ordering": 5,
+        "cloze": 5,
+        "reading": 10
+      },
+      "confidence": "high"
+    },
+    "mock_supported": {
+      "total_questions": 80,
+      "counts": {
+        "kanji_to_kana": 30,
+        "kana_to_kanji": 10,
+        "vocab_choice": 5,
+        "expression_choice": 10,
+        "grammar_fill": 25
+      },
+      "note": "2024 配比中的五大可生成题型；不含阅读10/排序5/完形5。"
+    },
+    "reference_jp1": {
+      "source": "综合日语1期末测试通知（跨课程参考，非大二上正式考纲）",
+      "scope_lessons": [
+        7,
+        15
+      ],
+      "duration_minutes": 100,
+      "format": "all_multiple_choice",
+      "stated_total": 95,
+      "counts_total": 100,
+      "counts": {
+        "kanji_to_kana": 20,
+        "kana_to_kanji": 20,
+        "vocab_choice": 15,
+        "grammar_fill": 30,
+        "sentence_ordering": 5,
+        "cloze": 5,
+        "reading": 5
+      },
+      "reading_passages": "4-5篇（通知未给每题数量）",
+      "confidence": "low",
+      "note": "通知明确计数合计 95；其中阅读只写 4-5 篇，本文件按 5 题估算后计数为 100。仅作背景参考。"
+    }
+  },
+  "source_mix_presets": {
+    "first_learn": {
+      "original": 0.5,
+      "variant": 0.3,
+      "new": 0.2
+    },
+    "unit_test": {
+      "original": 0.2,
+      "variant": 0.3,
+      "new": 0.5
+    },
+    "mock": {
+      "original": 0.05,
+      "variant": 0.2,
+      "new": 0.75
+    },
+    "review": {
+      "original": 0.0,
+      "variant": 0.4,
+      "new": 0.6
+    },
+    "note": "Mix is decided before fan-out; model does not allocate. Original/variant need a local item bank; without one, fallback to new."
+  }
+}

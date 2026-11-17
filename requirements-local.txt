@@ -1,0 +1,3 @@
+# Optional local dictionaries. Not needed for core generation.
+fugashi>=1.5
+mdict-utils>=1.3.14

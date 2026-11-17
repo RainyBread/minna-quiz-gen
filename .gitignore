@@ -9,24 +9,43 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.egg-info/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# editors / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
 
 # local assets / copyrighted originals (never distribute)
 教材pdf/
 *.pdf
+*.docx
+local_docs/
 dlut-nihongo-quiz/
 data/unidic-cwj-*/
 data/mdicts/
+*.mdx
+*.mdd
+*.zip
 
 # runtime data
 data/db/
 data/cache/
 data/logs/
-data/exams/*/rejected/
-data/exams/*/b2a-*
+*.sqlite3
+*.log
+data/exams/raw_*.json
+data/exams/*.local.json
+data/exams/big1_spring/*
+!data/exams/big1_spring/.gitkeep
+data/exams/big2_autumn/*
+!data/exams/big2_autumn/.gitkeep
 data/rules/_draft/
 data/rules/history/
+data/rules/_mining_report.json
 data/textbook/*/drafts/
-
-# OS
-.DS_Store
-Thumbs.db
+data/textbook/*/ocr/
+data/textbook/*/pdf_page_map.json

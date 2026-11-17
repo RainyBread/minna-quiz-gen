@@ -1,0 +1,280 @@
+{
+  "meta": {
+    "semester": "big2_autumn",
+    "version": 2,
+    "reviewed": true,
+    "generated_at": "2026-11-17T20:45:51+08:00",
+    "generator": "deterministic+llm",
+    "corpus_sha256": "ecbfc988512123d0b85c88d441ca239396ba5aceee9726c1a40bb8b3bad5e934",
+    "notes": [
+      "设正库：每个题型由 correct_design 描述正确答案来源。",
+      "设误库：规则供展示与本地干扰项参考；不强制 LLM 输出绑定规则。",
+      "记录型题型（translation_choice/sentence_ordering/cloze/reading）只记录配比，本期不生成。"
+    ],
+    "conflicts": [],
+    "llm_notes": [
+      "题型配比严重偏离 blueprint_2024：kanji_to_kana 观测 321（蓝图 30）、kana_to_kanji 312（蓝图 10）、translation_choice 134（蓝图未列），而 vocab_choice 仅 6（蓝图 5）、expression_choice 11（蓝图 10）基本达标；建议压缩读音/汉字题量，将 translation_choice 纳入蓝图或并入 vocab_choice。",
+      "mora_error（398）与 kanji_form_error（368）为确定性高频规则，予以保留；similar_word_error 计数 976 覆盖 kana_to_kanji/translation_choice/vocab_choice，为跨题型主干扰规则。",
+      "small_kana_error 仅 1 例（mock），long_vowel_error 14 例、katakana_spelling_error 9 例、dakuten_error 无独立计数，均属低频读音类规则，建议合并为读音细节干扰族以提升干扰项多样性。",
+      "voice_error、homophone_kanji_error、counter_affix_error 为本次补充的语义/语法类规则，checker 沿用允许 ID 或 null，证据取自样本（exam2024-q050、legacy-w37-004-a、exam2024-q043）。",
+      "situational_error 在 grammar_fill 出现 46 次，说明语法题大量依赖语境适切性而非纯语法，设正时须保证干扰项各违反一条明确规则。",
+      "translation_choice 样本多为 legacy_vocab 的「假名↔中文」双向词条，干扰项为同类专名/近义词，仅适用 similar_word_error，建议补充词义辨析类规则或限制该题型占比。",
+      "mock 样本 answer 多为 null，复核时以 explanation 中标注的规则为准；正式入库前须补全 answer 字段。"
+    ],
+    "reviewed_at": "2026-11-17T20:45:55+08:00",
+    "approved_rule_ids": [
+      "similar_word_error",
+      "mora_error",
+      "kanji_form_error",
+      "situational_error",
+      "tense_aspect_error",
+      "particle_error",
+      "long_vowel_error",
+      "collocation_error",
+      "katakana_spelling_error",
+      "conjugation_error",
+      "small_kana_error"
+    ],
+    "draft_rule_ids": [
+      "homophone_kanji_error",
+      "voice_error",
+      "counter_affix_error",
+      "dakuten_error"
+    ]
+  },
+  "blueprint": {
+    "source": "2024年日语期末试卷（官方100题）",
+    "total_questions": 100,
+    "counts": {
+      "kanji_to_kana": 30,
+      "kana_to_kanji": 10,
+      "vocab_choice": 5,
+      "expression_choice": 10,
+      "grammar_fill": 25,
+      "sentence_ordering": 5,
+      "cloze": 5,
+      "reading": 10
+    },
+    "missing": [
+      "q13（OCR 不可用）"
+    ],
+    "reference_blueprints": [
+      {
+        "source": "25级综合日语1期末测试通知（95题，跨课程参考）",
+        "total_questions": 95,
+        "counts": {
+          "kanji_to_kana": 20,
+          "kana_to_kanji": 20,
+          "vocab_choice": 15,
+          "grammar_fill": 30,
+          "sentence_ordering": 5,
+          "cloze": 5,
+          "reading": 5
+        },
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "note": "主配比来自 2024 大二上期末真题；第13题 OCR 不可用；记录型题型首版不生成。"
+  },
+  "types": {
+    "kanji_to_kana": {
+      "type": "kanji_to_kana",
+      "name_zh": "日文汉字选假名",
+      "weight": 0.348362,
+      "observed_weight": 0.38674698795180723,
+      "blueprint_count": 30,
+      "supported": true,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "从教材词条取 written，正确答案由 UniDic 的 kana 字段确定性注入",
+        "answer_source": "unidic.kana",
+        "verification": "unidic_reading_equals_answer"
+      },
+      "allowed_mistake_rules": [
+        "conjugation_error",
+        "dakuten_error",
+        "katakana_spelling_error",
+        "long_vowel_error",
+        "mora_error",
+        "similar_word_error",
+        "small_kana_error"
+      ],
+      "prompt_hint": "干扰项优先用长音/促音/浊音/音节变形；不要用无关词义替换。",
+      "evidence_count": 321
+    },
+    "kana_to_kanji": {
+      "type": "kana_to_kanji",
+      "name_zh": "假名选日文汉字",
+      "weight": 0.204483,
+      "observed_weight": 0.3759036144578313,
+      "blueprint_count": 10,
+      "supported": true,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "从教材词条取 written，正确答案为教材汉字写法",
+        "answer_source": "textbook.vocab.written",
+        "verification": "textbook_written_equals_answer_and_homophone_check"
+      },
+      "allowed_mistake_rules": [
+        "homophone_kanji_error",
+        "kanji_form_error",
+        "similar_word_error"
+      ],
+      "prompt_hint": "干扰项用形近汉字、同音词或同前缀词，并确保读音不重现题干假名。",
+      "evidence_count": 312
+    },
+    "vocab_choice": {
+      "type": "vocab_choice",
+      "name_zh": "词汇选择",
+      "weight": 0.037586,
+      "observed_weight": 0.007228915662650603,
+      "blueprint_count": 5,
+      "supported": true,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "从教材词条/释义选定正确词，LLM 只补语境与干扰项",
+        "answer_source": "textbook.vocab",
+        "verification": "source_exists_plus_blind_solve"
+      },
+      "allowed_mistake_rules": [
+        "collocation_error",
+        "counter_affix_error",
+        "kanji_form_error",
+        "katakana_spelling_error",
+        "similar_word_error"
+      ],
+      "prompt_hint": "干扰项与正确词同词性/同语义场，但搭配或语境不成立。",
+      "evidence_count": 6
+    },
+    "expression_choice": {
+      "type": "expression_choice",
+      "name_zh": "表达选择",
+      "weight": 0.074741,
+      "observed_weight": 0.01325301204819277,
+      "blueprint_count": 10,
+      "supported": true,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "从已审核 GrammarPoint 的 approved_answer_forms 选定正确应答",
+        "answer_source": "grammar.approved_answer_forms",
+        "verification": "exactly_one_approved_form_plus_blind_solve"
+      },
+      "allowed_mistake_rules": [
+        "collocation_error",
+        "conjugation_error",
+        "particle_error",
+        "situational_error",
+        "voice_error"
+      ],
+      "prompt_hint": "干扰项语法上可能成立，但情景、礼貌程度或说话人关系不匹配。",
+      "evidence_count": 11
+    },
+    "grammar_fill": {
+      "type": "grammar_fill",
+      "name_zh": "语法填空",
+      "weight": 0.186207,
+      "observed_weight": 0.03132530120481928,
+      "blueprint_count": 25,
+      "supported": true,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "从已审核 GrammarPoint 的 approved_answer_forms 选定正确形式",
+        "answer_source": "grammar.approved_answer_forms",
+        "verification": "exactly_one_approved_form_plus_blind_solve"
+      },
+      "allowed_mistake_rules": [
+        "conjugation_error",
+        "particle_error",
+        "situational_error",
+        "tense_aspect_error",
+        "voice_error"
+      ],
+      "prompt_hint": "干扰项优先助词/活用/时态/语态错误；禁止多解。",
+      "evidence_count": 26
+    },
+    "translation_choice": {
+      "type": "translation_choice",
+      "name_zh": "释义选择（记录型）",
+      "weight": 0.0,
+      "observed_weight": 0.1614457831325301,
+      "blueprint_count": 0,
+      "supported": false,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "记录型题型：首版不生成",
+        "answer_source": "none",
+        "verification": "record_only"
+      },
+      "allowed_mistake_rules": [
+        "similar_word_error"
+      ],
+      "prompt_hint": "记录型题型，首版不生成。",
+      "evidence_count": 134
+    },
+    "sentence_ordering": {
+      "type": "sentence_ordering",
+      "name_zh": "句子排序（记录型）",
+      "weight": 0.037155,
+      "observed_weight": 0.006024096385542169,
+      "blueprint_count": 5,
+      "supported": false,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "记录型题型：首版不生成",
+        "answer_source": "none",
+        "verification": "record_only"
+      },
+      "allowed_mistake_rules": [
+        "conjugation_error",
+        "particle_error",
+        "situational_error"
+      ],
+      "prompt_hint": "记录型题型，首版不生成。",
+      "evidence_count": 5
+    },
+    "cloze": {
+      "type": "cloze",
+      "name_zh": "完形填空（记录型）",
+      "weight": 0.037155,
+      "observed_weight": 0.006024096385542169,
+      "blueprint_count": 5,
+      "supported": false,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "记录型题型：首版不生成",
+        "answer_source": "none",
+        "verification": "record_only"
+      },
+      "allowed_mistake_rules": [
+        "conjugation_error",
+        "particle_error",
+        "similar_word_error",
+        "situational_error",
+        "tense_aspect_error"
+      ],
+      "prompt_hint": "记录型题型，首版不生成。",
+      "evidence_count": 5
+    },
+    "reading": {
+      "type": "reading",
+      "name_zh": "阅读理解（记录型）",
+      "weight": 0.07431,
+      "observed_weight": 0.012048192771084338,
+      "blueprint_count": 10,
+      "supported": false,
+      "option_count": 4,
+      "correct_design": {
+        "strategy": "记录型题型：首版不生成",
+        "answer_source": "none",
+        "verification": "record_only"
+      },
+      "allowed_mistake_rules": [
+        "similar_word_error",
+        "situational_error"
+      ],
+      "prompt_hint": "记录型题型，首版不生成。",
+      "evidence_count": 10
+    }
+  }
+}
